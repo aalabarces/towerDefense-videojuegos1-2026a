@@ -299,7 +299,7 @@ class Persona extends GameObject {
   update(deltaTimeRatio, gameObjects) {
     if (this.estado === EstadosPersona.MUERTO) return;
 
-    this.actualizarVelocidadLinealYAngulo();
+    // this.actualizarVelocidadLinealYAngulo();
 
     if (this.velocidadLineal < 0.0001) {
       this.asignarVelocidad(0, 0);
@@ -309,10 +309,7 @@ class Persona extends GameObject {
     }
 
     this.moverHaciaTarget();
-
-    this.aplicarFisica(deltaTimeRatio, gameObjects);
-
-    this.render();
+    super.update(deltaTimeRatio, gameObjects);
   }
 
   moverHaciaTarget() {
@@ -338,7 +335,7 @@ class Persona extends GameObject {
     const vy = dy / this.distHaciaTarget;
 
     this.agregarAceleracion(vx * rapidez, vy * rapidez);
-    this.actualizarVelocidadLinealYAngulo();
+
     this.direccion = this.obtenerDireccionSegunAngulo();
     this.cambiarAnimacion(
       this.obtenerEstadoSegunVelocidadLineal(),

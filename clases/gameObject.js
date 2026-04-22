@@ -126,10 +126,12 @@ class GameObject {
 
   aplicarFisica(deltaTimeRatio, gameObjects) {
     if (this.estatico) return;
-    this.actualizarVelocidadLinealYAngulo();
     this.aplicarAceleracion(deltaTimeRatio);
     this.aplicarFriccion(deltaTimeRatio);
     this.limitarVelocidad();
+
+    this.actualizarVelocidadLinealYAngulo();
+
     this.actualizarPosicion(deltaTimeRatio);
     this.resolverColisionesPropias(gameObjects);
   }

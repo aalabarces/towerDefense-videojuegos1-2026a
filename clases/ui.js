@@ -84,15 +84,18 @@ class UI {
     sprite.zIndex = 9999;
 
     this.fantasma = { sprite, tipo };
-    this.juego.mundo.addChild(sprite);
+    this.juego.containerPrincipal.addChild(sprite);
   }
 
   onMouseMove(event) {
     if (!this.fantasma) return;
 
-    const zoom = this.juego.mundo.scale.x;
-    const mundoX = (event.pageX - this.juego.mundo.x) / zoom;
-    const mundoY = (event.pageY - this.juego.mundo.y) / zoom;
+    const contenedor = this.juego.containerPrincipal;
+    if (!contenedor) return;
+
+    const zoom = contenedor.scale.x;
+    const mundoX = (event.pageX - contenedor.x) / zoom;
+    const mundoY = (event.pageY - contenedor.y) / zoom;
 
     this.fantasma.sprite.x = mundoX;
     this.fantasma.sprite.y = mundoY;
@@ -110,7 +113,7 @@ class UI {
   cancelarColocacion() {
     if (!this.fantasma) return;
 
-    this.juego.mundo.removeChild(this.fantasma.sprite);
+    this.juego.containerPrincipal.removeChild(this.fantasma.sprite);
     this.fantasma.sprite.destroy();
     this.fantasma = null;
   }

@@ -9,19 +9,9 @@ class Juego {
   constructor(opciones = {}) {
     this.opciones = opciones;
     this.colorDeFondo = opciones.background ?? "#ffff00";
-    this.rutaSpritesheet = "civil1.json";
-    this.rutasDeImagenes = {
-      centroUrbano: "centroUrbano.png",
-      torre1: "torre1.png",
-      torre2: "torre2.png",
-      rock1: "rock1.png",
-      rock2: "rock2.png",
-      rock3: "rock3.png",
-      bg: "bg.jpg",
-    };
 
     this.app = null;
-    this.mundo = null;
+    this.containerPrincipal = null;
     this.ui = null;
     this.assetsCivil = null;
     this.assetsSplat = null;
@@ -56,57 +46,101 @@ class Juego {
     this.onWindowFocus = this.onWindowFocus.bind(this);
   }
 
+  /**
+   * Arranca Pixi, el mundo, la UI y el bucle. No hace nada si ya se inicializó.
+   */
   async init() {
     if (this.pixiInicializado) {
       console.log("no podes arrancar pixi de nuevo");
       return;
     }
 
-    this.app = new PIXI.Application();
+    await this.inicializarAplicacionPixi();
+    this.configurarOrdenamientoDelStage();
+    this.registrarAppGlobalParaDepuracion();
+    this.agregarCanvasEnBody();
 
-    await this.app.init({
+    await this.cargarAssets();
+
+    this.crearContainerPrincipal();
+    this.agregarFondoDelMundo();
+    this.spawnCentroUrbano(MUNDO_ANCHO / 2, MUNDO_ALTO / 2);
+
+    this.crearInterfazUsuario();
+    this.registrarEventosDeEntrada();
+    this.pixiInicializado = true;
+    this.iniciarBucleDeJuego();
+  }
+
+  /**
+   * Opciones pasadas a PIXI.Application.init (tamaño, rendimiento, resize).
+   */
+  obtenerOpcionesDeInicializacionPixi() {
+    return {
       background: this.colorDeFondo,
       width: window.innerWidth,
       height: window.innerHeight,
-
       pixelArt: true,
-
       resolution: 1,
       autoDensity: true,
       powerPreference: "high-performance",
       backgroundAlpha: 0,
       antialias: false,
-      resolution: 1,
       resizeTo: window,
       backgroundColor: 0x1099bb,
-    });
+    };
+  }
 
+  /**
+   * Crea la aplicación Pixi y la inicializa con las opciones del juego.
+   */
+  async inicializarAplicacionPixi() {
+    this.app = new PIXI.Application();
+    await this.app.init(this.obtenerOpcionesDeInicializacionPixi());
+  }
+
+  /**
+   * Permite ordenar hijos del stage por zIndex.
+   */
+  configurarOrdenamientoDelStage() {
     this.app.stage.sortableChildren = true;
+  }
 
+  /**
+   * Expone la app en window para inspección en consola / herramientas.
+   */
+  registrarAppGlobalParaDepuracion() {
     window.__PIXI_APP__ = this.app;
+  }
 
+  /**
+   * Inserta el canvas en el DOM y evita scroll/márgenes por defecto del body.
+   */
+  agregarCanvasEnBody() {
     document.body.appendChild(this.app.canvas);
     document.body.style.margin = "0px";
     document.body.style.overflow = "hidden";
+  }
 
-    this.pixiInicializado = true;
+  /**
+   * Contenedor raíz del mundo: posición inicial centrada y orden por zIndex.
+   */
+  crearContainerPrincipal() {
+    this.containerPrincipal = new PIXI.Container();
+    this.containerPrincipal.sortableChildren = true;
+    this.containerPrincipal.x = Math.round(
+      (window.innerWidth - MUNDO_ANCHO) / 2,
+    );
+    this.containerPrincipal.y = Math.round(
+      (window.innerHeight - MUNDO_ALTO) / 2,
+    );
+    this.app.stage.addChild(this.containerPrincipal);
+  }
 
-    try {
-      this.assetsCivil = await PIXI.Assets.load(this.rutaSpritesheet);
-      this.assetsSplat = await PIXI.Assets.load("splat/splat.json");
-    } catch (error) {
-      this.mostrarErrorDeAssets(error);
-      throw error;
-    }
-
-    await this.cargarAssets();
-
-    this.mundo = new PIXI.Container();
-    this.mundo.sortableChildren = true;
-    this.mundo.x = Math.round((window.innerWidth - MUNDO_ANCHO) / 2);
-    this.mundo.y = Math.round((window.innerHeight - MUNDO_ALTO) / 2);
-    this.app.stage.addChild(this.mundo);
-
+  /**
+   * Fondo repetido (tiling) que cubre todo el tamaño lógico del mundo.
+   */
+  agregarFondoDelMundo() {
     const texturaBg = this.texturas["bg"];
     const fondo = new PIXI.TilingSprite({
       texture: texturaBg,
@@ -114,12 +148,20 @@ class Juego {
       height: MUNDO_ALTO,
     });
     fondo.zIndex = -1;
-    this.mundo.addChild(fondo);
+    this.containerPrincipal.addChild(fondo);
+  }
 
-    this.spawnCentroUrbano(MUNDO_ANCHO / 2, MUNDO_ALTO / 2);
-
+  /**
+   * Instancia la capa de UI del juego (HUD, colocación, etc.).
+   */
+  crearInterfazUsuario() {
     this.ui = new UI(this);
+  }
 
+  /**
+   * Resize, mouse, teclado, rueda, foco y visibilidad de la pestaña.
+   */
+  registrarEventosDeEntrada() {
     window.addEventListener("resize", this.onResize);
     document.body.addEventListener("click", this.onClick);
     document.body.addEventListener("contextmenu", this.onContextMenu);
@@ -130,53 +172,46 @@ class Juego {
     document.addEventListener("visibilitychange", this.onVisibilityChange);
     window.addEventListener("blur", this.onWindowBlur);
     window.addEventListener("focus", this.onWindowFocus);
+  }
 
+  /**
+   * Primer frame del game loop (requestAnimationFrame).
+   */
+  iniciarBucleDeJuego() {
     this.rafId = requestAnimationFrame(this.gameloop);
   }
 
-  mostrarErrorDeAssets(error) {
-    console.error("No se pudo cargar el spritesheet civil1", error);
-
-    const cartel = document.createElement("div");
-    cartel.textContent =
-      'No se pudo cargar "civil1.json". Revisar que "civil1.png" exista junto al json.';
-    cartel.style.position = "fixed";
-    cartel.style.left = "16px";
-    cartel.style.top = "16px";
-    cartel.style.padding = "12px 16px";
-    cartel.style.background = "#ffffff";
-    cartel.style.border = "1px solid #000000";
-    cartel.style.fontFamily = "sans-serif";
-    cartel.style.zIndex = "9999";
-
-    document.body.appendChild(cartel);
-  }
-
+  /**
+   * Spritesheets y texturas usadas por entidades y escenario.
+   */
   async cargarAssets() {
-    const entradas = Object.entries(this.rutasDeImagenes);
+    this.assetsCivil = await PIXI.Assets.load("civil1.json");
+    this.assetsSplat = await PIXI.Assets.load("splat/splat.json");
+
+    const imagenes = {
+      centroUrbano: "centroUrbano.png",
+      torre1: "torre1.png",
+      torre2: "torre2.png",
+      rock1: "rock1.png",
+      rock2: "rock2.png",
+      rock3: "rock3.png",
+      bg: "bg.jpg",
+    };
+
+    const entradas = Object.entries(imagenes);
 
     await Promise.all(
-      entradas.map(async ([clave, ruta]) => {
+      entradas.map(async ([nombre, ruta]) => {
         const textura = await PIXI.Assets.load(ruta);
-        this.texturas[clave] = textura;
+        this.texturas[nombre] = textura;
       }),
     );
   }
 
-  async cargarTextura(clave, rutaOriginal) {
-    if (this.texturas[clave]) {
-      return this.texturas[clave];
-    }
 
-    const ruta = rutaOriginal;
-    const textura = await PIXI.Assets.load(ruta);
-    this.texturas[clave] = textura;
-
-    return textura;
-  }
 
   agregarGameObject(gameObject) {
-    this.mundo.addChild(gameObject.container);
+    this.containerPrincipal.addChild(gameObject.container);
     gameObject.render();
 
     return gameObject;
@@ -184,13 +219,11 @@ class Juego {
 
   spawnEnemigo(x, y, opciones = {}) {
     const enemigo = new Enemigo(x, y, this, opciones);
-
     return this.agregarGameObject(enemigo);
   }
 
   spawnCentroUrbano(x, y) {
     const centroUrbano = new CentroUrbano(x, y, this);
-
     this.centroUrbano = centroUrbano;
     return this.agregarGameObject(centroUrbano);
   }
@@ -221,9 +254,9 @@ class Juego {
       return;
     }
 
-    const zoom = this.mundo.scale.x;
-    const mundoX = (event.pageX - this.mundo.x) / zoom;
-    const mundoY = (event.pageY - this.mundo.y) / zoom;
+    const zoom = this.containerPrincipal.scale.x;
+    const mundoX = (event.pageX - this.containerPrincipal.x) / zoom;
+    const mundoY = (event.pageY - this.containerPrincipal.y) / zoom;
 
     if (this.ui?.confirmarColocacion(mundoX, mundoY)) return;
 
@@ -232,9 +265,9 @@ class Juego {
 
   onWheel(event) {
     event.preventDefault();
-    if (!this.mundo) return;
+    if (!this.containerPrincipal) return;
 
-    const zoom = this.mundo.scale.x;
+    const zoom = this.containerPrincipal.scale.x;
     const nuevoZoom = Math.min(
       ZOOM_MAX,
       Math.max(ZOOM_MIN, zoom - event.deltaY * ZOOM_FACTOR * zoom),
@@ -243,12 +276,12 @@ class Juego {
     const mouseX = event.clientX;
     const mouseY = event.clientY;
 
-    const mundoX = (mouseX - this.mundo.x) / zoom;
-    const mundoY = (mouseY - this.mundo.y) / zoom;
+    const mundoX = (mouseX - this.containerPrincipal.x) / zoom;
+    const mundoY = (mouseY - this.containerPrincipal.y) / zoom;
 
-    this.mundo.scale.set(nuevoZoom);
-    this.mundo.x = mouseX - mundoX * nuevoZoom;
-    this.mundo.y = mouseY - mundoY * nuevoZoom;
+    this.containerPrincipal.scale.set(nuevoZoom);
+    this.containerPrincipal.x = mouseX - mundoX * nuevoZoom;
+    this.containerPrincipal.y = mouseY - mundoY * nuevoZoom;
   }
 
   onContextMenu(event) {
@@ -262,9 +295,9 @@ class Juego {
   onMouseMove(event) {
     if (!this.teclas["1"]) return;
 
-    const zoom = this.mundo.scale.x;
-    const mundoX = (event.clientX - this.mundo.x) / zoom;
-    const mundoY = (event.clientY - this.mundo.y) / zoom;
+    const zoom = this.containerPrincipal.scale.x;
+    const mundoX = (event.clientX - this.containerPrincipal.x) / zoom;
+    const mundoY = (event.clientY - this.containerPrincipal.y) / zoom;
 
     this.spawnEnemigo(mundoX, mundoY);
   }
@@ -312,40 +345,44 @@ class Juego {
   }
 
   moverCamara() {
-    if (!this.mundo) return;
+    if (!this.containerPrincipal) return;
 
     if (this.teclas["a"] || this.teclas["arrowleft"]) {
-      this.mundo.x += CAMARA_VELOCIDAD;
+      this.containerPrincipal.x += CAMARA_VELOCIDAD;
     }
     if (this.teclas["d"] || this.teclas["arrowright"]) {
-      this.mundo.x -= CAMARA_VELOCIDAD;
+      this.containerPrincipal.x -= CAMARA_VELOCIDAD;
     }
     if (this.teclas["w"] || this.teclas["arrowup"]) {
-      this.mundo.y += CAMARA_VELOCIDAD;
+      this.containerPrincipal.y += CAMARA_VELOCIDAD;
     }
     if (this.teclas["s"] || this.teclas["arrowdown"]) {
-      this.mundo.y -= CAMARA_VELOCIDAD;
+      this.containerPrincipal.y -= CAMARA_VELOCIDAD;
     }
 
-    const zoom = this.mundo.scale.x;
+    const zoom = this.containerPrincipal.scale.x;
     const anchoEscalado = MUNDO_ANCHO * zoom;
     const altoEscalado = MUNDO_ALTO * zoom;
 
     if (anchoEscalado <= window.innerWidth) {
-      this.mundo.x = Math.round((window.innerWidth - anchoEscalado) / 2);
+      this.containerPrincipal.x = Math.round(
+        (window.innerWidth - anchoEscalado) / 2,
+      );
     } else {
-      this.mundo.x = Math.min(
+      this.containerPrincipal.x = Math.min(
         0,
-        Math.max(window.innerWidth - anchoEscalado, this.mundo.x),
+        Math.max(window.innerWidth - anchoEscalado, this.containerPrincipal.x),
       );
     }
 
     if (altoEscalado <= window.innerHeight) {
-      this.mundo.y = Math.round((window.innerHeight - altoEscalado) / 2);
+      this.containerPrincipal.y = Math.round(
+        (window.innerHeight - altoEscalado) / 2,
+      );
     } else {
-      this.mundo.y = Math.min(
+      this.containerPrincipal.y = Math.min(
         0,
-        Math.max(window.innerHeight - altoEscalado, this.mundo.y),
+        Math.max(window.innerHeight - altoEscalado, this.containerPrincipal.y),
       );
     }
   }
