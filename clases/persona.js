@@ -15,13 +15,14 @@ class Persona extends GameObject {
 
     this.juego = juego;
     this.dataJson = juego.assetsCivil;
-    this.distanciaParaLlegar = 50;
-    this.rapidezWalk = 2;
-    this.rapidezRun = 4;
+    this.distanciaParaLlegar = 100;
+    this.rapidezWalk = 1;
+    this.rapidezRun = 3;
 
-    this.aceleracionParaCorrer = 0.3;
+    this.aceleracionParaCorrer = 0.25;
 
     this.vida = opciones.vida ?? 1;
+    this.radio = 10;
 
     this.estado = opciones.estadoInicial ?? "idle";
     this.direccion = opciones.direccionInicial ?? "down";
@@ -53,7 +54,7 @@ class Persona extends GameObject {
     spriteAnimado.visible = false;
     spriteAnimado.loop = opciones.loop ?? true;
     spriteAnimado.animationSpeed = opciones.animationSpeed ?? 0.12;
-    spriteAnimado.scale.set(opciones.scale ?? 2);
+    spriteAnimado.scale.set(opciones.scale ?? 1);
     this.configurarOrigen(spriteAnimado);
     spriteAnimado.play();
 
@@ -110,6 +111,7 @@ class Persona extends GameObject {
         this.spritesAnimados[estado][direccion] = this.crearSpriteAnimado(
           frames,
           key,
+          { scale: 1 },
         );
       }
     }
@@ -296,20 +298,49 @@ class Persona extends GameObject {
     this.sincronizarAnimacionConMovimiento();
   }
 
-  update(deltaTimeRatio, gameObjects) {
+  update() {
     if (this.estado === EstadosPersona.MUERTO) return;
 
     // this.actualizarVelocidadLinealYAngulo();
 
-    if (this.velocidadLineal < 0.0001) {
-      this.asignarVelocidad(0, 0);
-      this.velocidadLineal = 0;
-    } else {
-      this.direccion = this.obtenerDireccionSegunAngulo();
-    }
+    // if (this.velocidadLineal < 0.00001) {
+    //   this.asignarVelocidad(0, 0);
+    // } else {
+    this.direccion = this.obtenerDireccionSegunAngulo();
+    // }
+
+    this.repelerObstaculos();
 
     this.moverHaciaTarget();
-    super.update(deltaTimeRatio, gameObjects);
+    super.update();
+  }
+
+  repelerObstaculos() {
+    const cuantoMirarAlrededor = 200;
+    const piedrasCerca = this.juego.getPiedrasCerca(
+      this.posicion.x,
+      this.posicion.y,
+      cuantoMirarAlrededor,
+    );
+
+    if (piedrasCerca.length === 0) return;
+    const fuerzaMaxima = 0.8;
+
+    for (let piedra of piedrasCerca) {
+      const dx = this.posicion.x - piedra.posicion.x;
+      const dy = this.posicion.y - piedra.posicion.y;
+      const distancia = Math.hypot(dx, dy);
+      if (distancia < 0.0001) continue;
+
+      const cercania = Math.max(0, 1 - distancia / cuantoMirarAlrededor);
+      const fuerza = fuerzaMaxima * cercania * cercania;
+      if (fuerza <= 0) continue;
+
+      this.agregarAceleracion(
+        (fuerza * dx) / distancia,
+        (fuerza * dy) / distancia,
+      );
+    }
   }
 
   moverHaciaTarget() {
@@ -327,6 +358,8 @@ class Persona extends GameObject {
       this.asignarVelocidad(0, 0);
       this.velocidadLineal = 0;
       this.cambiarAnimacion("idle", this.direccion);
+      this.targetX = null;
+      this.targetY = null;
       return;
     }
 

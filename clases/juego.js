@@ -4,6 +4,8 @@ const CAMARA_VELOCIDAD = 6;
 const ZOOM_MIN = 0.3;
 const ZOOM_MAX = 2.0;
 const ZOOM_FACTOR = 0.001;
+const BASE_FRAME_MS = 1000 / 60;
+const DELTA_TIME_MAX_MS = 1000;
 
 class Juego {
   constructor(opciones = {}) {
@@ -16,11 +18,13 @@ class Juego {
     this.assetsCivil = null;
     this.assetsSplat = null;
     this.texturas = {};
+    this.ultimoFrameRenderizado = performance.now();
 
     //un array para cada tipo de gameObject
     this.gameObjects = [];
     this.enemigos = [];
     this.torres = [];
+    this.piedras = [];
     this.centrosUrbanos = [];
     this.personas = [];
     this.casitas = [];
@@ -28,10 +32,10 @@ class Juego {
     this.pixiInicializado = false;
     this.teclas = {};
 
-    this.ultimoTimestamp = null;
     this.deltaTimeRatio = 1;
+    this.fps = 60;
+    this.deltaTime = 1 / 60;
     this.pausado = false;
-    this.rafId = null;
 
     this.gameloop = this.gameloop.bind(this);
     this.onResize = this.onResize.bind(this);
@@ -175,10 +179,14 @@ class Juego {
   }
 
   /**
-   * Primer frame del game loop (requestAnimationFrame).
+   * Registra y arranca el game loop en el ticker de Pixi.
    */
   iniciarBucleDeJuego() {
-    this.rafId = requestAnimationFrame(this.gameloop);
+    // this.app.ticker.remove(this.gameloop);
+    // this.app.ticker.add(this.gameloop);
+    // this.app.ticker.start();
+    this.ultimoFrameRenderizado = performance.now();
+    this.gameloop();
   }
 
   /**
@@ -192,9 +200,13 @@ class Juego {
       centroUrbano: "centroUrbano.png",
       torre1: "torre1.png",
       torre2: "torre2.png",
+      torre3: "torre3.png",
+      torre4: "torre4.png",
+      torre5: "torre5.png",
       rock1: "rock1.png",
       rock2: "rock2.png",
       rock3: "rock3.png",
+      rock4: "rock4.png",
       bg: "bg.jpg",
     };
 
@@ -207,8 +219,6 @@ class Juego {
       }),
     );
   }
-
-
 
   agregarGameObject(gameObject) {
     this.containerPrincipal.addChild(gameObject.container);
@@ -232,6 +242,12 @@ class Juego {
     const torre = new Torre(x, y, this, tipo);
 
     return this.agregarGameObject(torre);
+  }
+
+  spawnPiedra(x, y, tipo = 1) {
+    const piedra = new Piedra(x, y, this, tipo);
+
+    return this.agregarGameObject(piedra);
   }
 
   moverEnemigosHacia(x, y) {
@@ -305,18 +321,14 @@ class Juego {
   pausa() {
     this.pausado = true;
     console.log("pausando juego");
-    if (this.rafId !== null) {
-      cancelAnimationFrame(this.rafId);
-      this.rafId = null;
-    }
+    this.app?.ticker?.stop();
   }
 
   reanudar() {
     if (this.pausado) {
       console.log("reanudando juego");
       this.pausado = false;
-      this.ultimoTimestamp = null;
-      this.rafId = requestAnimationFrame(this.gameloop);
+      this.app?.ticker?.start();
     }
   }
 
@@ -342,22 +354,24 @@ class Juego {
     }
 
     this.app.renderer.resize(window.innerWidth, window.innerHeight);
+    this.ui?.posicionarPanel();
   }
 
   moverCamara() {
     if (!this.containerPrincipal) return;
+    const desplazamiento = CAMARA_VELOCIDAD * this.deltaTimeRatio;
 
     if (this.teclas["a"] || this.teclas["arrowleft"]) {
-      this.containerPrincipal.x += CAMARA_VELOCIDAD;
+      this.containerPrincipal.x += desplazamiento;
     }
     if (this.teclas["d"] || this.teclas["arrowright"]) {
-      this.containerPrincipal.x -= CAMARA_VELOCIDAD;
+      this.containerPrincipal.x -= desplazamiento;
     }
     if (this.teclas["w"] || this.teclas["arrowup"]) {
-      this.containerPrincipal.y += CAMARA_VELOCIDAD;
+      this.containerPrincipal.y += desplazamiento;
     }
     if (this.teclas["s"] || this.teclas["arrowdown"]) {
-      this.containerPrincipal.y -= CAMARA_VELOCIDAD;
+      this.containerPrincipal.y -= desplazamiento;
     }
 
     const zoom = this.containerPrincipal.scale.x;
@@ -387,24 +401,36 @@ class Juego {
     }
   }
 
-  gameloop(timestamp) {
-    this.deltaTimeRatio = this.ultimoTimestamp
-      ? (timestamp - this.ultimoTimestamp) / 16.666
-      : 1;
-    this.ultimoTimestamp = timestamp;
+  gameloop() {
+    // this.actualizarMetricasDeTiempo(deltaTimeMsReal);
 
     this.moverCamara();
 
     for (let gameObject of this.gameObjects) {
-      gameObject.update(this.deltaTimeRatio, this.gameObjects);
+      gameObject.update();
     }
 
-    this.rafId = requestAnimationFrame(this.gameloop);
+    this.ui?.actualizarMetricasDeRendimiento();
+
+    this.deltaTime = performance.now() - this.ultimoFrameRenderizado;
+    this.fps = 1000 / this.deltaTime;
+    this.deltaTimeRatio = this.deltaTime / 16.666666666666667;
+    this.ultimoFrameRenderizado = performance.now();
+
+    requestAnimationFrame(this.gameloop);
   }
 
   getEnemigosCerca(x, y, radio) {
     return this.enemigos.filter((enemigo) => {
       return distancia(x, y, enemigo.posicion.x, enemigo.posicion.y) < radio;
+    });
+  }
+
+  getPiedrasCerca(x, y, radio) {
+    return this.piedras.filter((obstaculo) => {
+      return (
+        distancia(x, y, obstaculo.posicion.x, obstaculo.posicion.y) < radio
+      );
     });
   }
 }

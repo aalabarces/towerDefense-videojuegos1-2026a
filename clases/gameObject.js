@@ -79,9 +79,14 @@ class GameObject {
     }
   }
 
-  aplicarFriccion(deltaTimeRatio) {
-    this.velocidad.x *= this.friccion * deltaTimeRatio;
-    this.velocidad.y *= this.friccion * deltaTimeRatio;
+  aplicarFriccion(deltaTimeRatio = 1) {
+    const friccionBase = Math.max(0, this.friccion);
+    if (friccionBase === 1) return;
+
+    const factorDeFriccion =
+      friccionBase === 0 ? 0 : Math.pow(friccionBase, deltaTimeRatio);
+    this.velocidad.x *= factorDeFriccion;
+    this.velocidad.y *= factorDeFriccion;
   }
 
   actualizarPosicion(deltaTimeRatio = 1) {
@@ -99,7 +104,7 @@ class GameObject {
     }
   }
 
-  resolverColisionCon(otro) {
+  resolverColisionCon(otro, deltaTimeRatio = 1) {
     if (this.estatico) return;
 
     const dx = otro.posicion.x - this.posicion.x;
@@ -113,27 +118,32 @@ class GameObject {
     const overlap = sumRadios - dist;
     const nx = dx / dist;
     const ny = dy / dist;
-    const fuerza = otro.estatico ? overlap : overlap * 0.5;
+    const fuerza = (otro.estatico ? overlap : overlap * 0.5) * 0.1;
+    const fuerzaAjustadaPorTiempo = fuerza * deltaTimeRatio;
 
-    this.sumarVelocidad(-nx * fuerza, -ny * fuerza);
+    this.sumarVelocidad(
+      -nx * fuerzaAjustadaPorTiempo,
+      -ny * fuerzaAjustadaPorTiempo,
+    );
   }
 
-  resolverColisionesPropias(gameObjects) {
+  resolverColisionesPropias(gameObjects, deltaTimeRatio = 1) {
     for (let otro of gameObjects) {
-      if (otro !== this) this.resolverColisionCon(otro);
+      if (otro !== this) this.resolverColisionCon(otro, deltaTimeRatio);
     }
   }
 
-  aplicarFisica(deltaTimeRatio, gameObjects) {
+  aplicarFisica() {
+    const deltaTimeRatio = this.juego.deltaTimeRatio;
+    const gameObjects = this.juego.gameObjects;
     if (this.estatico) return;
     this.aplicarAceleracion(deltaTimeRatio);
     this.aplicarFriccion(deltaTimeRatio);
     this.limitarVelocidad();
-
-    this.actualizarVelocidadLinealYAngulo();
-
     this.actualizarPosicion(deltaTimeRatio);
-    this.resolverColisionesPropias(gameObjects);
+    this.resolverColisionesPropias(gameObjects, deltaTimeRatio);
+    this.limitarVelocidad();
+    this.actualizarVelocidadLinealYAngulo();
   }
 
   render() {
@@ -142,8 +152,8 @@ class GameObject {
     this.container.zIndex = this.posicion.y;
   }
 
-  update(deltaTimeRatio = 1, gameObjects = []) {
-    this.aplicarFisica(deltaTimeRatio, gameObjects);
+  update() {
+    this.aplicarFisica();
     this.render();
   }
 }

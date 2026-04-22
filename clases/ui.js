@@ -1,6 +1,9 @@
 const BOTON_TAMANO = 64;
 const BOTON_PADDING = 8;
-const PANEL_ANCHO = BOTON_TAMANO * 2 + BOTON_PADDING * 3;
+const CANTIDAD_DE_BOTONES = 9;
+const PANEL_ANCHO =
+  BOTON_TAMANO * CANTIDAD_DE_BOTONES +
+  BOTON_PADDING * (CANTIDAD_DE_BOTONES + 1);
 const PANEL_ALTO = BOTON_TAMANO + BOTON_PADDING * 2;
 
 class UI {
@@ -8,6 +11,7 @@ class UI {
     this.juego = juego;
     this.fantasma = null;
     this.ignorarProximoClick = false;
+    this.textoRendimiento = null;
 
     this.container = new PIXI.Container();
     this.container.zIndex = 1000;
@@ -15,6 +19,7 @@ class UI {
 
     this.crearPanel();
     this.posicionarPanel();
+    this.crearDebugDeRendimiento();
 
     this.onMouseMove = this.onMouseMove.bind(this);
     document.body.addEventListener("mousemove", this.onMouseMove);
@@ -26,12 +31,23 @@ class UI {
     fondo.fill({ color: 0x000000, alpha: 0.55 });
     this.container.addChild(fondo);
 
-    this.crearBoton(1, BOTON_PADDING, BOTON_PADDING);
-    this.crearBoton(2, BOTON_PADDING * 2 + BOTON_TAMANO, BOTON_PADDING);
+    for (let i = 1; i <= CANTIDAD_DE_BOTONES; i++) {
+      this.crearBoton(
+        i,
+        BOTON_PADDING * i + BOTON_TAMANO * (i - 1),
+        BOTON_PADDING,
+      );
+    }
   }
 
   crearBoton(tipo, x, y) {
-    const textura = this.juego.texturas[`torre${tipo}`];
+    let textura;
+    if (tipo >= 1 && tipo <= 5) {
+      textura = this.juego.texturas[`torre${tipo}`];
+    } else {
+      const rockNum = tipo - 5;
+      textura = this.juego.texturas[`rock${rockNum}`];
+    }
 
     const marco = new PIXI.Graphics();
     marco.roundRect(0, 0, BOTON_TAMANO, BOTON_TAMANO, 6);
@@ -73,17 +89,51 @@ class UI {
     this.container.y = window.innerHeight - PANEL_ALTO - 12;
   }
 
+  crearDebugDeRendimiento() {
+    this.textoRendimiento = new PIXI.Text({
+      text: "",
+      style: {
+        fontFamily: "monospace",
+        fontSize: 13,
+        fill: 0xffffff,
+        stroke: { color: 0x000000, width: 3 },
+      },
+    });
+
+    this.textoRendimiento.x = 12;
+    this.textoRendimiento.y = 12;
+    this.textoRendimiento.zIndex = 1200;
+
+    this.juego.app.stage.addChild(this.textoRendimiento);
+    this.actualizarMetricasDeRendimiento();
+  }
+
+  actualizarMetricasDeRendimiento() {
+    if (!this.textoRendimiento) return;
+
+    this.textoRendimiento.text = [
+      `FPS : ${this.juego.fps.toFixed(1)}`,
+      `Delta time: ${this.juego.deltaTime.toFixed(2)} ms`,
+      `Delta time ratio: ${this.juego.deltaTimeRatio.toFixed(2)}`,
+    ].join("\n");
+  }
+
   activarModoColocacion(tipo) {
     this.cancelarColocacion();
 
-    const textura = this.juego.texturas[`torre${tipo}`];
+    const esTorre = tipo >= 1 && tipo <= 5;
+    const tipoDePiedra = tipo - 5;
+    const textura = esTorre
+      ? this.juego.texturas[`torre${tipo}`]
+      : this.juego.texturas[`rock${tipoDePiedra}`];
     const sprite = new PIXI.Sprite(textura);
     sprite.anchor.set(0.5, 1);
     sprite.alpha = 0.5;
     sprite.tint = 0x4499ff;
+    sprite.scale.set(2);
     sprite.zIndex = 9999;
 
-    this.fantasma = { sprite, tipo };
+    this.fantasma = { sprite, tipo, esTorre, tipoDePiedra };
     this.juego.containerPrincipal.addChild(sprite);
   }
 
@@ -104,9 +154,13 @@ class UI {
   confirmarColocacion(mundoX, mundoY) {
     if (!this.fantasma) return false;
 
-    const tipo = this.fantasma.tipo;
+    const { tipo, esTorre, tipoDePiedra } = this.fantasma;
     this.cancelarColocacion();
-    this.juego.spawnTorre(mundoX, mundoY, tipo);
+    if (esTorre) {
+      this.juego.spawnTorre(mundoX, mundoY, tipo);
+    } else {
+      this.juego.spawnPiedra(mundoX, mundoY, tipoDePiedra);
+    }
     return true;
   }
 

@@ -8,7 +8,7 @@ class Torre extends Casita {
     this.tipoDeTorre = tipo;
     this.cooldown = 80;
     this.tiempoDesdeUltimoDisparo = 0;
-    this.inicializarSprite(juego.texturas[`torre${tipo}`]);
+    this.inicializarSprite(juego.texturas[`torre${tipo}`], 2);
 
     this.lineaDisparo = new PIXI.Sprite(PIXI.Texture.WHITE);
     this.lineaDisparo.width = 2;
@@ -20,10 +20,8 @@ class Torre extends Casita {
     juego.torres.push(this);
   }
 
-  update(deltaTimeRatio) {
-    super.update(deltaTimeRatio);
-
-    this.tiempoDesdeUltimoDisparo += deltaTimeRatio * (1000 / 60);
+  update() {
+    this.tiempoDesdeUltimoDisparo += this.juego.deltaTime;
 
     this.enemigosCerca = this.juego.getEnemigosCerca(
       this.posicion.x,
@@ -36,6 +34,8 @@ class Torre extends Casita {
 
     this.dispararA(this.enemigosCerca[0]);
     this.tiempoDesdeUltimoDisparo = 0;
+
+    super.update();
   }
 
   dispararA(enemigo) {
