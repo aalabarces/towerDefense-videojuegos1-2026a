@@ -23,8 +23,61 @@ class GameObject {
     this.estatico = false;
     this.velocidadMaxima = 10;
     this.friccion = 1;
+    this.vidaMax = 100;
+    this.vida = this.vidaMax;
+    this.mostrarVida = true;
+
+    this.barraVidaContainer = new PIXI.Container();
+    this.barraVidaFondo = new PIXI.Graphics();
+    this.barraVida = new PIXI.Graphics();
+    this.barraVidaContainer.addChild(this.barraVidaFondo);
+    this.barraVidaContainer.addChild(this.barraVida);
+    this.container.addChild(this.barraVidaContainer);
+
+    this.inicializarBarraDeVida();
+
     juego.gameObjects.push(this);
   }
+
+  //////////
+  // VIDA
+  //////////
+
+  inicializarBarraDeVida() {
+    this.barraVidaFondo.clear();
+    this.barraVidaFondo.rect(-25, -5, 50, 6);
+    this.barraVidaFondo.fill({ color: 0x000000, alpha: 0.5 });
+
+    this.actualizarBarraDeVida();
+    this.barraVidaContainer.y = -this.radio * 2 - 35;
+    this.barraVidaContainer.visible = this.mostrarVida;
+  }
+
+  actualizarBarraDeVida() {
+    const porcentaje = Math.max(0, this.vida / this.vidaMax);
+    this.barraVida.clear();
+    this.barraVida.rect(-25, -5, 50 * porcentaje, 6);
+    const color =
+      porcentaje > 0.5 ? 0x00ff00 : porcentaje > 0.2 ? 0xffff00 : 0xff0000;
+    this.barraVida.fill({ color: color, alpha: 1 });
+  }
+
+  recibirDaño(cuanto) {
+    this.vida -= cuanto;
+    this.actualizarBarraDeVida();
+    if (this.vida <= 0) {
+      this.morir();
+    }
+  }
+
+  morir() {
+    this.sacameDeLosArrays();
+    this.container.destroy();
+  }
+
+  //////////
+  // UTIL
+  //////////
 
   sacameDeLosArrays() {
     this.juego.casitas = this.juego.casitas.filter((casita) => casita !== this);
@@ -48,6 +101,10 @@ class GameObject {
       displayObject.anchor.set(0.5, 1);
     }
   }
+
+  //////////
+  // FÍSICAS
+  //////////
 
   sumarVelocidad(x, y) {
     this.velocidad.x += x;
@@ -145,6 +202,10 @@ class GameObject {
     this.limitarVelocidad();
     this.actualizarVelocidadLinealYAngulo();
   }
+
+  //////////
+  // GAMELOOP
+  //////////
 
   render() {
     this.container.x = this.posicion.x;

@@ -20,6 +20,7 @@ class UI {
     this.crearPanel();
     this.posicionarPanel();
     this.crearDebugDeRendimiento();
+    this.crearBarraVidaCentroUrbano();
 
     this.onMouseMove = this.onMouseMove.bind(this);
     document.body.addEventListener("mousemove", this.onMouseMove);
@@ -118,6 +119,55 @@ class UI {
     ].join("\n");
   }
 
+  crearBarraVidaCentroUrbano() {
+    this.containerBarraVidaCU = new PIXI.Container();
+    this.containerBarraVidaCU.x = 200; // Al lado del texto de rendimiento
+    this.containerBarraVidaCU.y = 12;
+    this.containerBarraVidaCU.zIndex = 1200;
+
+    const anchoTotal = window.innerWidth - 220;
+    const alto = 20;
+
+    const fondo = new PIXI.Graphics();
+    fondo.rect(0, 0, anchoTotal, alto);
+    fondo.fill({ color: 0x000000, alpha: 0.5 });
+    this.containerBarraVidaCU.addChild(fondo);
+
+    this.barraVidaCU = new PIXI.Graphics();
+    this.containerBarraVidaCU.addChild(this.barraVidaCU);
+
+    const label = new PIXI.Text({
+      text: "CENTRO URBANO",
+      style: {
+        fontFamily: "Arial",
+        fontSize: 14,
+        fontWeight: "bold",
+        fill: 0xffffff,
+      },
+    });
+    label.x = 10;
+    label.y = 2;
+    this.containerBarraVidaCU.addChild(label);
+
+    this.juego.app.stage.addChild(this.containerBarraVidaCU);
+    this.actualizarBarraVidaCentroUrbano();
+  }
+
+  actualizarBarraVidaCentroUrbano() {
+    if (!this.barraVidaCU || !this.juego.centroUrbano) return;
+
+    const cu = this.juego.centroUrbano;
+    const porcentaje = Math.max(0, cu.vida / cu.vidaMax);
+    const anchoTotal = window.innerWidth - 220;
+    const alto = 20;
+
+    this.barraVidaCU.clear();
+    this.barraVidaCU.rect(0, 0, anchoTotal * porcentaje, alto);
+    const color =
+      porcentaje > 0.5 ? 0x00ff00 : porcentaje > 0.2 ? 0xffff00 : 0xff0000;
+    this.barraVidaCU.fill({ color: color, alpha: 0.8 });
+  }
+
   activarModoColocacion(tipo) {
     this.cancelarColocacion();
 
@@ -170,6 +220,74 @@ class UI {
     this.juego.containerPrincipal.removeChild(this.fantasma.sprite);
     this.fantasma.sprite.destroy();
     this.fantasma = null;
+  }
+
+  mostrarGameOver() {
+    const overlay = new PIXI.Container();
+    overlay.zIndex = 10000;
+
+    const fondo = new PIXI.Graphics();
+    fondo.rect(0, 0, window.innerWidth, window.innerHeight);
+    fondo.fill({ color: 0x000000, alpha: 0.75 });
+    overlay.addChild(fondo);
+
+    const textoGameOver = new PIXI.Text({
+      text: "GAME OVER",
+      style: {
+        fontFamily: "Arial",
+        fontSize: 72,
+        fontWeight: "bold",
+        fill: 0xff4444,
+        align: "center",
+      },
+    });
+    textoGameOver.anchor.set(0.5);
+    textoGameOver.x = window.innerWidth / 2;
+    textoGameOver.y = window.innerHeight / 2 - 50;
+    overlay.addChild(textoGameOver);
+
+    const botonReplay = new PIXI.Container();
+    const bgBoton = new PIXI.Graphics();
+    bgBoton.roundRect(0, 0, 200, 60, 10);
+    bgBoton.fill({ color: 0x4488cc, alpha: 1 });
+    botonReplay.addChild(bgBoton);
+
+    const textoBoton = new PIXI.Text({
+      text: "REPLAY",
+      style: {
+        fontFamily: "Arial",
+        fontSize: 24,
+        fill: 0xffffff,
+      },
+    });
+    textoBoton.anchor.set(0.5);
+    textoBoton.x = 100;
+    textoBoton.y = 30;
+    botonReplay.addChild(textoBoton);
+
+    botonReplay.x = window.innerWidth / 2 - 100;
+    botonReplay.y = window.innerHeight / 2 + 50;
+    botonReplay.interactive = true;
+    botonReplay.cursor = "pointer";
+
+    botonReplay.on("pointerover", () => {
+      bgBoton.clear();
+      bgBoton.roundRect(0, 0, 200, 60, 10);
+      bgBoton.fill({ color: 0x55aaee, alpha: 1 });
+    });
+
+    botonReplay.on("pointerout", () => {
+      bgBoton.clear();
+      bgBoton.roundRect(0, 0, 200, 60, 10);
+      bgBoton.fill({ color: 0x4488cc, alpha: 1 });
+    });
+
+    botonReplay.on("pointerdown", () => {
+      window.location.reload();
+    });
+
+    overlay.addChild(botonReplay);
+    this.juego.app.stage.addChild(overlay);
   }
 }
 

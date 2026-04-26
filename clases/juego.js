@@ -36,6 +36,7 @@ class Juego {
     this.fps = 60;
     this.deltaTime = 1 / 60;
     this.pausado = false;
+    this.interrumpirGameloop = false;
 
     this.gameloop = this.gameloop.bind(this);
     this.onResize = this.onResize.bind(this);
@@ -160,6 +161,7 @@ class Juego {
    */
   crearInterfazUsuario() {
     this.ui = new UI(this);
+    this.ui.container.zIndex = 10000;
   }
 
   /**
@@ -332,6 +334,13 @@ class Juego {
     }
   }
 
+  gameOver() {
+    this.interrumpirGameloop = true;
+    this.pausado = true;
+    this.containerPrincipal.visible = false;
+    this.ui.mostrarGameOver();
+  }
+
   onVisibilityChange() {
     if (document.hidden) {
       this.pausa();
@@ -403,6 +412,7 @@ class Juego {
 
   gameloop() {
     // this.actualizarMetricasDeTiempo(deltaTimeMsReal);
+    if (this.interrumpirGameloop) return;
 
     this.moverCamara();
 

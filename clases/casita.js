@@ -16,6 +16,7 @@ class Casita extends GameObject {
     this.sprite.scale.set(escala);
 
     this.container.addChild(this.sprite);
+    this.inicializarBarraDeVida();
     this.render();
   }
 }

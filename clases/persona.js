@@ -21,8 +21,11 @@ class Persona extends GameObject {
 
     this.aceleracionParaCorrer = 0.25;
 
-    this.vida = opciones.vida ?? 1;
+    this.vidaMax = opciones.vida ?? 100;
+    this.vida = this.vidaMax;
     this.radio = 10;
+    this.fuerza = opciones.fuerza ?? 1;
+    this.mostrarVida = opciones.mostrarVida ?? true;
 
     this.estado = opciones.estadoInicial ?? "idle";
     this.direccion = opciones.direccionInicial ?? "down";
@@ -33,6 +36,7 @@ class Persona extends GameObject {
       walk: {},
       run: {},
       hurt: {},
+      "1h_slash": {},
     };
     this.listaDeSprites = [];
     this.spriteActual = null;
@@ -44,6 +48,7 @@ class Persona extends GameObject {
     this.cargarSpritesAnimados(this.dataJson);
     this.spriteSplat = this.crearSpriteSplat(juego.assetsSplat);
     this.cambiarAnimacion(this.estado, this.direccion);
+    this.inicializarBarraDeVida();
     this.render();
   }
 
@@ -57,6 +62,12 @@ class Persona extends GameObject {
     spriteAnimado.scale.set(opciones.scale ?? 1);
     this.configurarOrigen(spriteAnimado);
     spriteAnimado.play();
+
+    spriteAnimado.onComplete = () => {
+      if (!spriteAnimado.loop) {
+        this.cambiarAnimacion("idle", this.direccion);
+      }
+    };
 
     this.listaDeSprites.push(spriteAnimado);
     this.container.addChild(spriteAnimado);
@@ -98,7 +109,7 @@ class Persona extends GameObject {
     const animations = textureData.animations ?? {};
     const direcciones = ["up", "left", "down", "right"];
 
-    for (let estado of ["idle", "walk", "run"]) {
+    for (let estado of ["idle", "walk", "run", "1h_slash"]) {
       for (let direccion of direcciones) {
         const key = `${estado}_${direccion}`;
         const frames = animations[key];
@@ -111,7 +122,11 @@ class Persona extends GameObject {
         this.spritesAnimados[estado][direccion] = this.crearSpriteAnimado(
           frames,
           key,
-          { scale: 1 },
+          {
+            scale: 1,
+            loop: estado !== "1h_slash",
+            animationSpeed: estado === "1h_slash" ? 0.25 : 0.12,
+          },
         );
       }
     }
@@ -256,9 +271,8 @@ class Persona extends GameObject {
   }
 
   recibirDaño(cuanto) {
-    this.vida -= cuanto;
+    super.recibirDaño(cuanto);
     this.mostrarSplat(cuanto);
-    this.chequearMuerte();
   }
 
   chequearMuerte() {
@@ -285,6 +299,7 @@ class Persona extends GameObject {
     this.velocidadLineal = 0;
     this.targetX = null;
     this.targetY = null;
+    this.barraVidaContainer.visible = false;
     this.sacameDeLosArrays();
   }
 
