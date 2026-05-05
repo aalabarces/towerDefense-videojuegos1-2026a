@@ -14,6 +14,7 @@ class UI {
     this.textoRendimiento = null;
 
     this.container = new PIXI.Container();
+    this.container.label = "ui";
     this.container.zIndex = 1000;
     juego.app.stage.addChild(this.container);
 
@@ -28,6 +29,7 @@ class UI {
 
   crearPanel() {
     const fondo = new PIXI.Graphics();
+    fondo.label = "fondo de la botonera";
     fondo.roundRect(0, 0, PANEL_ANCHO, PANEL_ALTO, 10);
     fondo.fill({ color: 0x000000, alpha: 0.55 });
     this.container.addChild(fondo);
@@ -53,6 +55,7 @@ class UI {
     const marco = new PIXI.Graphics();
     marco.roundRect(0, 0, BOTON_TAMANO, BOTON_TAMANO, 6);
     marco.fill({ color: 0x334455, alpha: 1 });
+    marco.alpha = 0.5;
     marco.x = x;
     marco.y = y;
     this.container.addChild(marco);
@@ -66,15 +69,17 @@ class UI {
     sprite.cursor = "pointer";
 
     sprite.on("pointerover", () => {
-      marco.clear();
-      marco.roundRect(0, 0, BOTON_TAMANO, BOTON_TAMANO, 6);
-      marco.fill({ color: 0x4488cc, alpha: 1 });
+      // marco.clear();
+      // marco.roundRect(0, 0, BOTON_TAMANO, BOTON_TAMANO, 6);
+      // marco.fill({ color: 0x4488cc, alpha: 1 });
+      marco.alpha = 1;
     });
 
     sprite.on("pointerout", () => {
-      marco.clear();
-      marco.roundRect(0, 0, BOTON_TAMANO, BOTON_TAMANO, 6);
-      marco.fill({ color: 0x334455, alpha: 1 });
+      // marco.clear();
+      // marco.roundRect(0, 0, BOTON_TAMANO, BOTON_TAMANO, 6);
+      // marco.fill({ color: 0x334455, alpha: 1 });
+      marco.alpha = 0.5;
     });
 
     sprite.on("pointerdown", () => {
@@ -169,6 +174,7 @@ class UI {
   }
 
   activarModoColocacion(tipo) {
+    console.log("pointer down", tipo);
     this.cancelarColocacion();
 
     const esTorre = tipo >= 1 && tipo <= 5;
@@ -176,6 +182,7 @@ class UI {
     const textura = esTorre
       ? this.juego.texturas[`torre${tipo}`]
       : this.juego.texturas[`rock${tipoDePiedra}`];
+
     const sprite = new PIXI.Sprite(textura);
     sprite.anchor.set(0.5, 1);
     sprite.alpha = 0.5;

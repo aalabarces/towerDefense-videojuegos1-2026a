@@ -12,7 +12,7 @@ class CentroUrbano extends Casita {
   recibirDaño(cuanto) {
     if (this.juego.interrumpirGameloop) return;
     super.recibirDaño(cuanto);
-    this.juego.ui.actualizarBarraVidaCentroUrbano();
+    // this.juego.ui.actualizarBarraVidaCentroUrbano();
     if (this.vida <= 0) {
       this.juego.gameOver();
     }

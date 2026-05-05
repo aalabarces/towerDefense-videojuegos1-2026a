@@ -6,6 +6,62 @@
         body {
             margin: 0px
         }
+
+        .botoncito {
+            width: 60px;
+            height: 60px;
+            margin: 5px;
+
+            background-size: auto 80%;
+            background-color: transparent;
+            border: 1px solid black;
+            background-repeat: no-repeat;
+            background-position: center;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .botoncito:hover {
+            background-color: gray;
+        }
+
+        .botoncito:nth-child(1) {
+            background-image: url(torre1.png);
+        }
+
+        .botoncito:nth-child(2) {
+            background-image: url(torre2.png);
+        }
+
+        .botoncito:nth-child(3) {
+            background-image: url(torre3.png);
+        }
+
+        .botoncito:nth-child(4) {
+            background-image: url(torre4.png);
+        }
+
+        .botoncito:nth-child(5) {
+            background-image: url(torre5.png);
+        }
+
+
+        .botoncito:nth-child(6) {
+            background-image: url(rock1.png);
+        }
+
+
+
+        #ui {
+            width: calc(10 * 70px);
+            height: 80px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
     </style>
 
 
@@ -22,7 +78,9 @@
     <script src="clases/centroUrbano.js"></script>
     <script src="clases/persona.js"></script>
     <script src="clases/enemigo.js"></script>
-    <script src="clases/ui.js"></script>
+    <!-- <script src="clases/ui.js"></script> -->
+    <script src="clases/uihtml.js"></script>
+
     <script src="clases/juego.js"></script>
 
 

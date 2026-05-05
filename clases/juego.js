@@ -38,6 +38,8 @@ class Juego {
     this.pausado = false;
     this.interrumpirGameloop = false;
 
+    this.estamosArrastrandoUnItemPAraPonerlo = null;
+
     this.gameloop = this.gameloop.bind(this);
     this.onResize = this.onResize.bind(this);
     this.onClick = this.onClick.bind(this);
@@ -160,8 +162,9 @@ class Juego {
    * Instancia la capa de UI del juego (HUD, colocación, etc.).
    */
   crearInterfazUsuario() {
-    this.ui = new UI(this);
-    this.ui.container.zIndex = 10000;
+    // this.ui = new UI(this);
+    this.ui = new UIHTML(this);
+    // this.ui.container.zIndex = 10000;
   }
 
   /**
@@ -169,15 +172,15 @@ class Juego {
    */
   registrarEventosDeEntrada() {
     window.addEventListener("resize", this.onResize);
-    document.body.addEventListener("click", this.onClick);
-    document.body.addEventListener("contextmenu", this.onContextMenu);
+    window.addEventListener("click", this.onClick);
+    window.addEventListener("contextmenu", this.onContextMenu);
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("keyup", this.onKeyUp);
     window.addEventListener("wheel", this.onWheel, { passive: false });
     window.addEventListener("mousemove", this.onMouseMove);
-    document.addEventListener("visibilitychange", this.onVisibilityChange);
-    window.addEventListener("blur", this.onWindowBlur);
-    window.addEventListener("focus", this.onWindowFocus);
+    // document.addEventListener("visibilitychange", this.onVisibilityChange);
+    // window.addEventListener("blur", this.onWindowBlur);
+    // window.addEventListener("focus", this.onWindowFocus);
   }
 
   /**
@@ -267,18 +270,20 @@ class Juego {
   }
 
   onClick(event) {
-    if (this.ui?.ignorarProximoClick) {
-      this.ui.ignorarProximoClick = false;
-      return;
+    // console.log("on click", event);
+    if (this.arrastrandoFantasma) {
+      if (this.arrastrandoFantasma.dataBoton.tipo == "torre") {
+        this.containerPrincipal.removeChild(this.arrastrandoFantasma.sprite);
+        this.arrastrandoFantasma.sprite.destroy();
+
+        this.spawnTorre(
+          this.mouse.x,
+          this.mouse.y,
+          this.arrastrandoFantasma.dataBoton.id,
+        );
+        this.arrastrandoFantasma = null;
+      }
     }
-
-    const zoom = this.containerPrincipal.scale.x;
-    const mundoX = (event.pageX - this.containerPrincipal.x) / zoom;
-    const mundoY = (event.pageY - this.containerPrincipal.y) / zoom;
-
-    if (this.ui?.confirmarColocacion(mundoX, mundoY)) return;
-
-    this.moverEnemigosHacia(mundoX, mundoY);
   }
 
   onWheel(event) {
@@ -304,20 +309,10 @@ class Juego {
 
   onContextMenu(event) {
     event.preventDefault();
-    if (this.ui?.fantasma) {
-      this.ui.cancelarColocacion();
-      return;
-    }
-  }
-
-  onMouseMove(event) {
-    if (!this.teclas["1"]) return;
-
-    const zoom = this.containerPrincipal.scale.x;
-    const mundoX = (event.clientX - this.containerPrincipal.x) / zoom;
-    const mundoY = (event.clientY - this.containerPrincipal.y) / zoom;
-
-    this.spawnEnemigo(mundoX, mundoY);
+    // if (this.ui?.fantasma) {
+    //   this.ui.cancelarColocacion();
+    //   return;
+    // }
   }
 
   pausa() {
@@ -338,7 +333,7 @@ class Juego {
     this.interrumpirGameloop = true;
     this.pausado = true;
     this.containerPrincipal.visible = false;
-    this.ui.mostrarGameOver();
+    // this.ui.mostrarGameOver();
   }
 
   onVisibilityChange() {
@@ -420,7 +415,7 @@ class Juego {
       gameObject.update();
     }
 
-    this.ui?.actualizarMetricasDeRendimiento();
+    // this.ui?.actualizarMetricasDeRendimiento();
 
     this.deltaTime = performance.now() - this.ultimoFrameRenderizado;
     this.fps = 1000 / this.deltaTime;
@@ -442,6 +437,50 @@ class Juego {
         distancia(x, y, obstaculo.posicion.x, obstaculo.posicion.y) < radio
       );
     });
+  }
+
+  onMouseMove(event) {
+    // if (!this.teclas["1"]) return;
+
+    const zoom = this.containerPrincipal.scale.x;
+    const mundoX = (event.clientX - this.containerPrincipal.x) / zoom;
+    const mundoY = (event.clientY - this.containerPrincipal.y) / zoom;
+
+    this.mouse = { x: mundoX, y: mundoY };
+
+    if (this.arrastrandoFantasma) {
+      this.arrastrandoFantasma.sprite.x = this.mouse.x;
+      this.arrastrandoFantasma.sprite.y = this.mouse.y;
+      this.arrastrandoFantasma.sprite.zIndex = this.mouse.y;
+    }
+
+    // this.spawnEnemigo(mundoX, mundoY);
+  }
+
+  crearSpriteFantasma(dataDelBoton) {
+    // console.log("poner fantasma", dataDelBoton);
+
+    const nuevoSpriteArrastrable = new PIXI.Sprite(
+      this.texturas[dataDelBoton.nombreTextura],
+    );
+
+    nuevoSpriteArrastrable.scale.set(2);
+    nuevoSpriteArrastrable.alpha = 0.4;
+    nuevoSpriteArrastrable.tint = 0x5555ff;
+
+    nuevoSpriteArrastrable.anchor.set(0.5, 1);
+
+    nuevoSpriteArrastrable.dataBoton = dataDelBoton;
+
+    this.arrastrandoFantasma = {
+      sprite: nuevoSpriteArrastrable,
+      dataBoton: dataDelBoton,
+    };
+
+    this.arrastrandoFantasma.sprite.x = this.mouse.x;
+    this.arrastrandoFantasma.sprite.y = this.mouse.y;
+
+    this.containerPrincipal.addChild(this.arrastrandoFantasma.sprite);
   }
 }
 

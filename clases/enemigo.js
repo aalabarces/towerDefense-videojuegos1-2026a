@@ -26,11 +26,10 @@ class Enemigo extends Persona {
 
     if (dist < this.radio + this.juego.centroUrbano.radio + 20) {
       this.asignarVelocidad(0, 0);
-      this.velocidadLineal = 0;
       this.atacar();
-    } else {
-      super.update();
     }
+
+    super.update();
   }
 
   atacar() {
