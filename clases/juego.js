@@ -198,21 +198,21 @@ class Juego {
    * Spritesheets y texturas usadas por entidades y escenario.
    */
   async cargarAssets() {
-    this.assetsCivil = await PIXI.Assets.load("civil1.json");
-    this.assetsSplat = await PIXI.Assets.load("splat/splat.json");
+    this.assetsCivil = await PIXI.Assets.load("assets/civil1.json");
+    this.assetsSplat = await PIXI.Assets.load("assets/splat/splat.json");
 
     const imagenes = {
-      centroUrbano: "centroUrbano.png",
-      torre1: "torre1.png",
-      torre2: "torre2.png",
-      torre3: "torre3.png",
-      torre4: "torre4.png",
-      torre5: "torre5.png",
-      rock1: "rock1.png",
-      rock2: "rock2.png",
-      rock3: "rock3.png",
-      rock4: "rock4.png",
-      bg: "bg.jpg",
+      centroUrbano: "assets/centroUrbano.png",
+      torre1: "assets/torre1.png",
+      torre2: "assets/torre2.png",
+      torre3: "assets/torre3.png",
+      torre4: "assets/torre4.png",
+      torre5: "assets/torre5.png",
+      rock1: "assets/rock1.png",
+      rock2: "assets/rock2.png",
+      rock3: "assets/rock3.png",
+      rock4: "assets/rock4.png",
+      bg: "assets/bg.jpg",
     };
 
     const entradas = Object.entries(imagenes);
@@ -269,20 +269,29 @@ class Juego {
     this.teclas[event.key.toLowerCase()] = false;
   }
 
+  quitarFantasma() {
+    this.containerPrincipal.removeChild(this.arrastrandoFantasma.sprite);
+    this.arrastrandoFantasma.sprite.destroy();
+    this.arrastrandoFantasma = null;
+  }
+
   onClick(event) {
     // console.log("on click", event);
     if (this.arrastrandoFantasma) {
       if (this.arrastrandoFantasma.dataBoton.tipo == "torre") {
-        this.containerPrincipal.removeChild(this.arrastrandoFantasma.sprite);
-        this.arrastrandoFantasma.sprite.destroy();
-
         this.spawnTorre(
           this.mouse.x,
           this.mouse.y,
           this.arrastrandoFantasma.dataBoton.id,
         );
-        this.arrastrandoFantasma = null;
+      } else if (this.arrastrandoFantasma.dataBoton.tipo == "piedra") {
+        this.spawnPiedra(
+          this.mouse.x,
+          this.mouse.y,
+          this.arrastrandoFantasma.dataBoton.id,
+        );
       }
+      this.quitarFantasma();
     }
   }
 

@@ -8,14 +8,60 @@ class UIHTML {
     document.body.appendChild(this.contenedorHTML);
 
     this.botones = [
-      { tipo: "torre", id: 1, url: "torre1.png", nombreTextura: "torre1" },
-      { tipo: "torre", id: 2, url: "torre2.png", nombreTextura: "torre2" },
-      { tipo: "torre", id: 3, url: "torre3.png", nombreTextura: "torre3" },
-      { tipo: "torre", id: 4, url: "torre4.png", nombreTextura: "torre4" },
-      { tipo: "torre", id: 5, url: "torre5.png", nombreTextura: "torre5" },
-      { tipo: "piedra", id: 6, url: "rock1.png", nombreTextura: "rock1" },
-      { tipo: "piedra", id: 7, url: "rock2.png", nombreTextura: "rock2" },
-      { tipo: "piedra", id: 8, url: "rock3.png", nombreTextura: "rock3" },
+      {
+        tipo: "torre",
+        id: 1,
+        url: "assets/torre1.png",
+        nombreTextura: "torre1",
+      },
+      {
+        tipo: "torre",
+        id: 2,
+        url: "assets/torre2.png",
+        nombreTextura: "torre2",
+      },
+      {
+        tipo: "torre",
+        id: 3,
+        url: "assets/torre3.png",
+        nombreTextura: "torre3",
+      },
+      {
+        tipo: "torre",
+        id: 4,
+        url: "assets/torre4.png",
+        nombreTextura: "torre4",
+      },
+      {
+        tipo: "torre",
+        id: 5,
+        url: "assets/torre5.png",
+        nombreTextura: "torre5",
+      },
+      {
+        tipo: "piedra",
+        id: 1,
+        url: "assets/rock1.png",
+        nombreTextura: "rock1",
+      },
+      {
+        tipo: "piedra",
+        id: 2,
+        url: "assets/rock2.png",
+        nombreTextura: "rock2",
+      },
+      {
+        tipo: "piedra",
+        id: 3,
+        url: "assets/rock3.png",
+        nombreTextura: "rock3",
+      },
+      {
+        tipo: "piedra",
+        id: 4,
+        url: "assets/rock4.png",
+        nombreTextura: "rock4",
+      },
     ];
 
     this.crearBotones();
@@ -32,7 +78,7 @@ class UIHTML {
     const button = document.createElement("button");
 
     button.data = cualBoton;
-    // button.style.backgroundImage = cualBoton.url;
+    button.style.backgroundImage = "url(" + cualBoton.url + ")";
 
     button.setAttribute("numero-de-boton", cualBoton.id);
 
