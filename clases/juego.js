@@ -35,22 +35,13 @@ class Juego {
     this.deltaTimeRatio = 1;
     this.fps = 60;
     this.deltaTime = 1 / 60;
+    this.numeroDeFrame = 0;
     this.pausado = false;
     this.interrumpirGameloop = false;
 
     this.estamosArrastrandoUnItemPAraPonerlo = null;
 
-    this.gameloop = this.gameloop.bind(this);
-    this.onResize = this.onResize.bind(this);
-    this.onClick = this.onClick.bind(this);
-    this.onContextMenu = this.onContextMenu.bind(this);
-    this.onKeyDown = this.onKeyDown.bind(this);
-    this.onKeyUp = this.onKeyUp.bind(this);
-    this.onWheel = this.onWheel.bind(this);
-    this.onMouseMove = this.onMouseMove.bind(this);
-    this.onVisibilityChange = this.onVisibilityChange.bind(this);
-    this.onWindowBlur = this.onWindowBlur.bind(this);
-    this.onWindowFocus = this.onWindowFocus.bind(this);
+    this.nivel = new Nivel(this);
   }
 
   /**
@@ -71,7 +62,7 @@ class Juego {
 
     this.crearContainerPrincipal();
     this.agregarFondoDelMundo();
-    this.spawnCentroUrbano(MUNDO_ANCHO / 2, MUNDO_ALTO / 2);
+    this.spawnCentroUrbano();
 
     this.crearInterfazUsuario();
     this.registrarEventosDeEntrada();
@@ -149,7 +140,7 @@ class Juego {
    */
   agregarFondoDelMundo() {
     const texturaBg = this.texturas["bg"];
-    const fondo = new PIXI.TilingSprite({
+    const fondo = new PIXI.Sprite({
       texture: texturaBg,
       width: MUNDO_ANCHO,
       height: MUNDO_ALTO,
@@ -171,6 +162,18 @@ class Juego {
    * Resize, mouse, teclado, rueda, foco y visibilidad de la pestaña.
    */
   registrarEventosDeEntrada() {
+    this.gameloop = this.gameloop.bind(this);
+    this.onResize = this.onResize.bind(this);
+    this.onClick = this.onClick.bind(this);
+    this.onContextMenu = this.onContextMenu.bind(this);
+    this.onKeyDown = this.onKeyDown.bind(this);
+    this.onKeyUp = this.onKeyUp.bind(this);
+    this.onWheel = this.onWheel.bind(this);
+    this.onMouseMove = this.onMouseMove.bind(this);
+    this.onVisibilityChange = this.onVisibilityChange.bind(this);
+    this.onWindowBlur = this.onWindowBlur.bind(this);
+    this.onWindowFocus = this.onWindowFocus.bind(this);
+
     window.addEventListener("resize", this.onResize);
     window.addEventListener("click", this.onClick);
     window.addEventListener("contextmenu", this.onContextMenu);
@@ -238,7 +241,7 @@ class Juego {
   }
 
   spawnCentroUrbano(x, y) {
-    const centroUrbano = new CentroUrbano(x, y, this);
+    const centroUrbano = new CentroUrbano(this);
     this.centroUrbano = centroUrbano;
     return this.agregarGameObject(centroUrbano);
   }
@@ -425,7 +428,8 @@ class Juego {
     }
 
     // this.ui?.actualizarMetricasDeRendimiento();
-
+    this.nivel.update();
+    this.numeroDeFrame++;
     this.deltaTime = performance.now() - this.ultimoFrameRenderizado;
     this.fps = 1000 / this.deltaTime;
     this.deltaTimeRatio = this.deltaTime / 16.666666666666667;

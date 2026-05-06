@@ -18,16 +18,14 @@ class Enemigo extends EntidadConSalud {
 
     this.juego = juego;
     this.dataJson = juego.assetsCivil;
-    this.distanciaParaLlegar = 100;
+    this.distanciaParaLlegar = 300;
     this.rapidezWalk = 1;
     this.rapidezRun = 3;
 
     this.aceleracionParaCorrer = 0.25;
 
-    this.vidaMax = opciones.vida ?? 100;
-    this.vida = this.vidaMax;
     this.radio = 10;
-    this.fuerza = opciones.fuerza ?? 1;
+
     this.mostrarVida = opciones.mostrarVida ?? true;
 
     this.estado = opciones.estadoInicial ?? "idle";
@@ -47,15 +45,19 @@ class Enemigo extends EntidadConSalud {
     this.estatico = false;
 
     this.friccion = 0.9;
-
-    this.targetX = juego.centroUrbano.posicion.x;
-    this.targetY = juego.centroUrbano.posicion.y;
+    this.nodoDelCaminoActual = 0;
+    this.asignarTarget(this.juego.nivel.nodosDelCamino[0]);
 
     this.cargarSpritesAnimados(this.dataJson);
     this.spriteSplat = this.crearSpriteSplat(juego.assetsSplat);
     this.cambiarAnimacion(this.estado, this.direccion);
     this.inicializarBarraDeVida();
     this.render();
+  }
+
+  asignarTarget(obj) {
+    this.targetX = obj.x;
+    this.targetY = obj.y;
   }
 
   crearSpriteAnimado(frames, nombre, opciones = {}) {
@@ -384,11 +386,13 @@ class Enemigo extends EntidadConSalud {
     this.distHaciaTarget = Math.hypot(dx, dy);
 
     if (this.distHaciaTarget <= this.distanciaParaLlegar) {
-      this.asignarVelocidad(0, 0);
-      this.velocidadLineal = 0;
-      this.cambiarAnimacion("idle", this.direccion);
-      this.targetX = null;
-      this.targetY = null;
+      this.nodoDelCaminoActual++;
+      //si ya no hay mas nodos, ir al centro urbano
+      const objTarget =
+        this.juego.nivel.nodosDelCamino[this.nodoDelCaminoActual] ||
+        this.juego.centroUrbano.posicion;
+
+      this.asignarTarget(objTarget);
       return;
     }
 
