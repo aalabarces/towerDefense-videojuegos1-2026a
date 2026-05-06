@@ -1,4 +1,4 @@
-class Piedra extends Casita {
+class Piedra extends Estructura {
   constructor(x, y, juego, tipo = 1) {
     super(x, y, juego);
     this.radio = 50;

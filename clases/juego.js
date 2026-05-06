@@ -212,7 +212,7 @@ class Juego {
       rock2: "assets/rock2.png",
       rock3: "assets/rock3.png",
       rock4: "assets/rock4.png",
-      bg: "assets/bg.jpg",
+      bg: "assets/fondo.jpg",
     };
 
     const entradas = Object.entries(imagenes);
@@ -367,7 +367,7 @@ class Juego {
     }
 
     this.app.renderer.resize(window.innerWidth, window.innerHeight);
-    this.ui?.posicionarPanel();
+    // this.ui?.posicionarPanel();
   }
 
   moverCamara() {

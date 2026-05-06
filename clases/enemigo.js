@@ -6,7 +6,7 @@ const EstadosEnemigo = Object.freeze({
   MUERTO: "muerto",
 });
 
-class Enemigo extends GameObject {
+class Enemigo extends EntidadConSalud {
   constructor(x, y, juego, opciones = { estadoInicial: "walk" }) {
     super(x, y, juego);
 
@@ -286,28 +286,28 @@ class Enemigo extends GameObject {
     this.morir();
   }
 
-  morir() {
-    this.ocultarTodosLosSprites();
-    const spriteHurt = this.obtenerSpriteSegunEstadoYDireccion(
-      EstadosEnemigo.HURT,
-      this.direccion,
-    );
-    if (spriteHurt) {
-      spriteHurt.visible = true;
-      spriteHurt.gotoAndPlay(0);
-      this.spriteActual = spriteHurt;
-    }
+  // morir() {
+  //   this.ocultarTodosLosSprites();
+  //   const spriteHurt = this.obtenerSpriteSegunEstadoYDireccion(
+  //     EstadosEnemigo.HURT,
+  //     this.direccion,
+  //   );
+  //   if (spriteHurt) {
+  //     spriteHurt.visible = true;
+  //     spriteHurt.gotoAndPlay(0);
+  //     this.spriteActual = spriteHurt;
+  //   }
 
-    this.estado = EstadosEnemigo.MUERTO;
-    this.estatico = true;
-    this.radio = 0;
-    this.asignarVelocidad(0, 0);
-    this.velocidadLineal = 0;
-    this.targetX = null;
-    this.targetY = null;
-    this.barraVidaContainer.visible = false;
-    this.sacameDeLosArrays();
-  }
+  //   this.estado = EstadosEnemigo.MUERTO;
+  //   this.estatico = true;
+  //   this.radio = 0;
+  //   this.asignarVelocidad(0, 0);
+  //   this.velocidadLineal = 0;
+  //   this.targetX = null;
+  //   this.targetY = null;
+  //   this.barraVidaContainer.visible = false;
+  //   this.sacameDeLosArrays();
+  // }
 
   setearTarget(targetX, targetY) {
     this.targetX = targetX;
@@ -315,12 +315,18 @@ class Enemigo extends GameObject {
   }
 
   render() {
+    if (this.estado === EstadosEnemigo.MUERTO) return;
+    if (!this.container) return;
+
     super.render();
     this.sincronizarAnimacionConMovimiento();
   }
 
   update() {
     if (this.estado === EstadosEnemigo.MUERTO) return;
+
+    this.repelerObstaculos();
+    this.moverHaciaTarget();
 
     // this.actualizarVelocidadLinealYAngulo();
     const dist = distancia(
@@ -331,19 +337,9 @@ class Enemigo extends GameObject {
     );
 
     if (dist < this.radio + this.juego.centroUrbano.radio + 20) {
-      this.asignarVelocidad(0, 0);
-      this.atacar();
-      // if (this.velocidadLineal < 0.00001) {
-      //   this.asignarVelocidad(0, 0);
-      // } else {
-      this.direccion = this.obtenerDireccionSegunAngulo();
-      // }
-
-      this.repelerObstaculos();
-
-      this.moverHaciaTarget();
-      super.update();
+      this.morir();
     }
+    super.update();
   }
 
   repelerObstaculos() {
