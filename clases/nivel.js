@@ -76,7 +76,7 @@ class Nivel {
       },
       {
         x: 3720,
-        y: 3613,
+        y: 3813,
       },
       {
         x: 2840,
@@ -92,10 +92,10 @@ class Nivel {
       },
       {
         x: 1820,
-        y: 683,
+        y: 383,
       },
       {
-        x: 1110,
+        x: 1010,
         y: 520,
       },
       {
@@ -103,6 +103,10 @@ class Nivel {
         y: 1980,
       },
     ];
+    this.oleadaActual = null;
+    this.oleadas = 0;
+    this.tiempoEntreOleadas = 5000;
+    this.tiempoSiguienteOleada = 5000;
   }
 
   spawnEnemigo() {
@@ -111,12 +115,25 @@ class Nivel {
       MUNDO_ALTO * 1.02 + Math.random() * 100,
     );
   }
+
+  spawnOleada() {
+    this.oleadas++;
+    console.log("Spawn de oleada ", this.oleadas);
+    this.oleadaActual = new Oleada(this.juego, this.oleadas);
+    this.tiempoSiguienteOleada = this.tiempoEntreOleadas;
+  }
+
   update() {
-    const ahora = performance.now();
-    // console.log(ahora);
-    if (ahora > 0 && ahora < 5000) {
-    } else if (ahora > 5000 && ahora < 7000) {
-      this.spawnEnemigo();
+    this.tiempoSiguienteOleada -= this.juego.deltaTime;
+    console.log(this.tiempoSiguienteOleada, this.oleadaActual);
+    if (this.tiempoSiguienteOleada <= 0 && !this.oleadaActual) {
+      this.spawnOleada();
+    }
+    if (this.oleadaActual){
+      this.oleadaActual.update();
+      if (this.oleadaActual.enemigosDeLaOleada.length === 0){
+        this.oleadaActual = null;
+      }
     }
   }
 }
