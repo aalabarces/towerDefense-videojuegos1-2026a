@@ -124,16 +124,16 @@ class Nivel {
   }
 
   update() {
-    this.tiempoSiguienteOleada -= this.juego.deltaTime;
-    console.log(this.tiempoSiguienteOleada, this.oleadaActual);
-    if (this.tiempoSiguienteOleada <= 0 && !this.oleadaActual) {
-      this.spawnOleada();
-    }
     if (this.oleadaActual){
       this.oleadaActual.update();
       if (this.oleadaActual.enemigosDeLaOleada.length === 0){
         this.oleadaActual = null;
       }
+      return;
+    }
+    this.tiempoSiguienteOleada -= this.juego.deltaTime;
+    if (this.tiempoSiguienteOleada <= 0 && !this.oleadaActual) {
+      this.spawnOleada();
     }
   }
 }
