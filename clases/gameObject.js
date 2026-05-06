@@ -73,6 +73,7 @@ class GameObject {
   morir() {
     this.sacameDeLosArrays();
     this.container.destroy();
+    this.container = null;
   }
 
   //////////
@@ -219,4 +220,4 @@ class GameObject {
   }
 }
 
-window.GameObject = GameObject;
+// window.GameObject = GameObject;

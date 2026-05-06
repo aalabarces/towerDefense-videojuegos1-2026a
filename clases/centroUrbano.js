@@ -1,4 +1,4 @@
-class CentroUrbano extends Casita {
+class CentroUrbano extends Estructura {
   constructor(x, y, juego) {
     super(x, y, juego);
     this.radio = 120;
