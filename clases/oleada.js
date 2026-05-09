@@ -1,24 +1,28 @@
-const TIPOS_ENEMIGOS = [{
-    clase: 'base',
+const TIPOS_ENEMIGOS = [
+  {
+    clase: "base",
     costo: 10,
-    oleada_desbloqueo: 1
+    oleada_desbloqueo: 1,
   },
   {
-    clase: 'rapido',
+    clase: "rapido",
     costo: 20,
-    oleada_desbloqueo: 3
+    oleada_desbloqueo: 3,
+    // oleada_desbloqueo: 1,
   },
   {
-    clase: 'duro',
+    clase: "duro",
     costo: 30,
-    oleada_desbloqueo: 8
+    oleada_desbloqueo: 8,
+    // oleada_desbloqueo: 1,
   },
   {
-    clase: 'fuerte',
+    clase: "fuerte",
     costo: 30,
-    oleada_desbloqueo: 15
+    oleada_desbloqueo: 15,
+    // oleada_desbloqueo: 1,
   },
-]
+];
 
 class Oleada {
   constructor(juego, numero) {
@@ -28,13 +32,14 @@ class Oleada {
     this.intervaloSpawn = Math.max(0.2, 1.5 - numero * 0.05);
     this.tiempoSiguienteSpawn = this.intervaloSpawn;
     this.presupuesto = this.calcularPresupuesto();
+    console.log("Presupuesto ", this.presupuesto);
     this.enemigosDisponibles = this.obtenerEnemigosDesbloqueados();
     this.enemigosDeLaOleada = [];
     this.generarOleada();
   }
 
   calcularPresupuesto() {
-    return 10 + 10 * Math.pow(1.3, this.numero - 1);
+    return 10 + 16 * Math.pow(1.42, this.numero - 1);
   }
 
   obtenerEnemigosDesbloqueados() {
@@ -49,11 +54,14 @@ class Oleada {
 
   generarOleada() {
     while (this.presupuesto > 0) {
-      const tipoEnemigo = this.enemigosDisponibles[Math.floor(Math.random() * this.enemigosDisponibles.length)];
+      const tipoEnemigo =
+        this.enemigosDisponibles[
+          Math.floor(Math.random() * this.enemigosDisponibles.length)
+        ];
       const enemigo = this.juego.spawnEnemigo(
         MUNDO_ANCHO * 1.02 + Math.random() * 100,
         MUNDO_ALTO * 1.02 + Math.random() * 100,
-        { tipo: tipoEnemigo.clase }
+        { tipo: tipoEnemigo.clase },
       );
       this.enemigosDeLaOleada.push(enemigo);
       this.presupuesto -= tipoEnemigo.costo;

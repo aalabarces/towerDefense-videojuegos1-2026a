@@ -17,13 +17,13 @@ class Enemigo extends EntidadConSalud {
     this.nombre = generateName();
     this.activo = false;
     this.juego = juego;
-    this.dataJson = juego.assetsCivil;
+    this.dataJson = opciones.dataJson ?? juego.assetsCivil;
     this.distanciaParaLlegar = 150;
     this.rapidezWalk = 1;
     this.rapidezRun = 2;
 
     this.aceleracionParaCorrer = 0.25;
-
+    this.distanciaParaExplotarElCentroUrbano = 50;
     this.radio = 10;
     this.radioDeVision = 100;
     this.velocidadMaxima = 2;
@@ -77,7 +77,6 @@ class Enemigo extends EntidadConSalud {
     this.nodoDelCaminoActual = 0;
     this.asignarTarget(this.juego.nivel.nodosDelCamino[0]);
     this.cambiarAnimacion(this.estado, this.direccion);
-    this.salud = this.vidaMax;
   }
 
   crearSpriteAnimado(frames, nombre, opciones = {}) {
@@ -338,6 +337,10 @@ class Enemigo extends EntidadConSalud {
   }
 
   render() {
+    if (this.juego.pausado) {
+      this.sprite.animationSpeed = 0;
+      return;
+    }
     if (this.estado === EstadosEnemigo.MUERTO) return;
     if (!this.container) return;
 
@@ -346,6 +349,7 @@ class Enemigo extends EntidadConSalud {
   }
 
   update() {
+    if (this.juego.pausado) return;
     if (this.estado === EstadosEnemigo.MUERTO || !this.activo) return;
 
     this.enemigosCerca = this.juego.getEnemigosCerca(
@@ -366,7 +370,7 @@ class Enemigo extends EntidadConSalud {
       this.juego.centroUrbano.posicion.y,
     );
 
-    if (dist < this.radio + this.juego.centroUrbano.radio + 120) {
+    if (dist < this.distanciaParaExplotarElCentroUrbano) {
       this.morir();
     }
     super.update();
@@ -524,7 +528,7 @@ class Enemigo extends EntidadConSalud {
         this.juego.centroUrbano.posicion;
 
       this.asignarTarget(objTarget);
-      return;
+      // return;
     }
 
     const rapidez = this.aceleracionParaCorrer;

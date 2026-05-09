@@ -211,7 +211,15 @@ class Juego {
    * Spritesheets y texturas usadas por entidades y escenario.
    */
   async cargarAssets() {
-    this.assetsCivil = await PIXI.Assets.load("assets/civil1.json");
+    this.assetEnemigo = await PIXI.Assets.load("assets/enemigo.json");
+    this.assetEnemigoDuro = await PIXI.Assets.load("assets/enemigoDuro.json");
+    this.assetEnemigoRapido = await PIXI.Assets.load(
+      "assets/enemigoRapido.json",
+    );
+    this.assetEnemigoFuerte = await PIXI.Assets.load(
+      "assets/enemigoFuerte.json",
+    );
+
     this.assetsSplat = await PIXI.Assets.load("assets/splat/splat.json");
     this.assetExplosion = await PIXI.Assets.load(
       "assets/explosion/explosions.json",
@@ -249,7 +257,15 @@ class Juego {
   }
 
   spawnEnemigo(x, y, opciones = {}) {
-    const enemigo = new Enemigo(x, y, this, opciones);
+    const tipo = opciones.tipo ?? "base";
+    const ClasePorTipo = {
+      base: EnemigoNormal,
+      rapido: EnemigoRapido,
+      duro: EnemigoDuro,
+      fuerte: EnemigoFuerte,
+    };
+    const Clase = ClasePorTipo[tipo] ?? EnemigoNormal;
+    const enemigo = new Clase(x, y, this, opciones);
     return this.agregarGameObject(enemigo);
   }
 
@@ -346,14 +362,13 @@ class Juego {
   pausa() {
     this.pausado = true;
     console.log("pausando juego");
-    this.app?.ticker?.stop();
   }
 
   reanudar() {
     if (this.pausado) {
       console.log("reanudando juego");
       this.pausado = false;
-      this.app?.ticker?.start();
+      this.gameloop();
     }
   }
 

@@ -5,10 +5,10 @@ const POSICION_CENTRO_URBANO = {
 class CentroUrbano extends Estructura {
   constructor(juego) {
     super(POSICION_CENTRO_URBANO.x, POSICION_CENTRO_URBANO.y, juego);
-    this.radio = 120;
+    this.radio = 80;
 
     this.tipo = "centroUrbano";
-    this.vidaMax = 10;
+    this.vidaMax = 1;
     this.vida = this.vidaMax;
     this.inicializarSprite(juego.texturas["centroUrbano"]);
   }

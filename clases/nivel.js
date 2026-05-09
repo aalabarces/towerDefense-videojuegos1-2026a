@@ -121,10 +121,12 @@ class Nivel {
   }
 
   spawnOleada() {
+    console.log("Spawn de oleada");
     this.oleadas++;
-    console.log("Spawn de oleada ", this.oleadas);
     this.oleadaActual = new Oleada(this.juego, this.oleadas);
     this.tiempoSiguienteOleada = this.tiempoEntreOleadas;
+    console.log("Spawn de oleada ", this.oleadas);
+    console.log("Tiempo siguiente oleada ", this.tiempoSiguienteOleada);
   }
 
   update() {
