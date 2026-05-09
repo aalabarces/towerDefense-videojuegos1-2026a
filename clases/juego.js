@@ -1,11 +1,17 @@
 const MUNDO_ANCHO = 7000 * ESCALA_FONDO;
 const MUNDO_ALTO = 4048 * ESCALA_FONDO;
 const CAMARA_VELOCIDAD = 20;
-const ZOOM_MIN = 0.3;
 const ZOOM_MAX = 2.0;
 const ZOOM_FACTOR = 0.001;
 const BASE_FRAME_MS = 1000 / 60;
 const DELTA_TIME_MAX_MS = 1000;
+
+/** Equivale a background-size: cover: el mundo tapa siempre el viewport (sin bandas por ratio). */
+function zoomMinimoCover() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  return Math.max(vw / MUNDO_ANCHO, vh / MUNDO_ALTO);
+}
 
 class Juego {
   constructor(opciones = {}) {
@@ -38,10 +44,14 @@ class Juego {
     this.numeroDeFrame = 0;
     this.pausado = false;
     // this.interrumpirGameloop = false;
-
+    this.usuario = new Usuario();
     this.estamosArrastrandoUnItemPAraPonerlo = null;
 
     this.nivel = new Nivel(this);
+  }
+
+  sumarPlata(cuanto) {
+    this.usuario.sumarPlata(cuanto);
   }
 
   /**
@@ -306,9 +316,10 @@ class Juego {
     if (!this.containerPrincipal) return;
 
     const zoom = this.containerPrincipal.scale.x;
+    const zoomMin = zoomMinimoCover();
     const nuevoZoom = Math.min(
       ZOOM_MAX,
-      Math.max(ZOOM_MIN, zoom - event.deltaY * ZOOM_FACTOR * zoom),
+      Math.max(zoomMin, zoom - event.deltaY * ZOOM_FACTOR * zoom),
     );
 
     const mouseX = event.clientX;
@@ -320,6 +331,7 @@ class Juego {
     this.containerPrincipal.scale.set(nuevoZoom);
     this.containerPrincipal.x = mouseX - mundoX * nuevoZoom;
     this.containerPrincipal.y = mouseY - mundoY * nuevoZoom;
+    this.clampCamaraAlMundo();
   }
 
   onContextMenu(event) {
@@ -373,7 +385,45 @@ class Juego {
     }
 
     this.app.renderer.resize(window.innerWidth, window.innerHeight);
+    if (this.containerPrincipal) {
+      const zoomMin = zoomMinimoCover();
+      if (this.containerPrincipal.scale.x < zoomMin) {
+        this.containerPrincipal.scale.set(zoomMin);
+      }
+    }
+    this.clampCamaraAlMundo();
     // this.ui?.posicionarPanel();
+  }
+
+  /**
+   * Evita que el viewport quede fuera del sprite de fondo (huecos / fondo blanco del DOM).
+   * Con zoom >= zoomMinimoCover() el escenario llena el viewport como background-size: cover.
+   */
+  clampCamaraAlMundo() {
+    if (!this.containerPrincipal) return;
+    const zoom = this.containerPrincipal.scale.x;
+    const anchoEscalado = MUNDO_ANCHO * zoom;
+    const altoEscalado = MUNDO_ALTO * zoom;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    if (anchoEscalado <= vw) {
+      this.containerPrincipal.x = Math.round((vw - anchoEscalado) / 2);
+    } else {
+      this.containerPrincipal.x = Math.min(
+        0,
+        Math.max(vw - anchoEscalado, this.containerPrincipal.x),
+      );
+    }
+
+    if (altoEscalado <= vh) {
+      this.containerPrincipal.y = Math.round((vh - altoEscalado) / 2);
+    } else {
+      this.containerPrincipal.y = Math.min(
+        0,
+        Math.max(vh - altoEscalado, this.containerPrincipal.y),
+      );
+    }
   }
 
   moverCamara() {
@@ -393,31 +443,7 @@ class Juego {
       this.containerPrincipal.y -= desplazamiento;
     }
 
-    const zoom = this.containerPrincipal.scale.x;
-    const anchoEscalado = MUNDO_ANCHO * zoom;
-    const altoEscalado = MUNDO_ALTO * zoom;
-
-    if (anchoEscalado <= window.innerWidth) {
-      this.containerPrincipal.x = Math.round(
-        (window.innerWidth - anchoEscalado) / 2,
-      );
-    } else {
-      this.containerPrincipal.x = Math.min(
-        0,
-        Math.max(window.innerWidth - anchoEscalado, this.containerPrincipal.x),
-      );
-    }
-
-    if (altoEscalado <= window.innerHeight) {
-      this.containerPrincipal.y = Math.round(
-        (window.innerHeight - altoEscalado) / 2,
-      );
-    } else {
-      this.containerPrincipal.y = Math.min(
-        0,
-        Math.max(window.innerHeight - altoEscalado, this.containerPrincipal.y),
-      );
-    }
+    this.clampCamaraAlMundo();
   }
 
   gameloop() {
@@ -437,7 +463,7 @@ class Juego {
     this.fps = 1000 / this.deltaTime;
     this.deltaTimeRatio = this.deltaTime / 16.666666666666667;
     this.ultimoFrameRenderizado = performance.now();
-
+    this.ui.actualizarPlata(this.usuario?.plata || 0);
     requestAnimationFrame(this.gameloop);
   }
 

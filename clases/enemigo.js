@@ -18,7 +18,7 @@ class Enemigo extends EntidadConSalud {
 
     this.juego = juego;
     this.dataJson = juego.assetsCivil;
-    this.distanciaParaLlegar = 300;
+    this.distanciaParaLlegar = 150;
     this.rapidezWalk = 1;
     this.rapidezRun = 2;
 
@@ -288,6 +288,11 @@ class Enemigo extends EntidadConSalud {
     this.mostrarSplat(cuanto);
   }
 
+  morir() {
+    super.morir();
+    this.juego.sumarPlata(10);
+  }
+
   // morir() {
   //   this.ocultarTodosLosSprites();
   //   const spriteHurt = this.obtenerSpriteSegunEstadoYDireccion(
@@ -345,18 +350,19 @@ class Enemigo extends EntidadConSalud {
       this.juego.centroUrbano.posicion.y,
     );
 
-    if (dist < this.radio + this.juego.centroUrbano.radio + 20) {
+    if (dist < this.radio + this.juego.centroUrbano.radio + 120) {
       this.morir();
     }
     super.update();
   }
 
   repelerObstaculos() {
-    const cuantoMirarAlrededor = 300;
+    const cuantoMirarAlrededor = 200;
+    const cuantoMirarAlFuturo = 15;
 
     const miPosFutura = {
-      x: this.posicion.x + this.velocidad.x * 30,
-      y: this.posicion.y + this.velocidad.y * 30,
+      x: this.posicion.x + this.velocidad.x * cuantoMirarAlFuturo,
+      y: this.posicion.y + this.velocidad.y * cuantoMirarAlFuturo,
     };
 
     const piedrasCerca = this.juego.getPiedrasCerca(

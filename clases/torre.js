@@ -2,7 +2,7 @@ class Torre extends Estructura {
   constructor(x, y, juego, tipo = 1) {
     super(x, y, juego);
     this.radio = 40;
-    this.radioDeVision = 600;
+    this.radioDeVision = 400;
 
     this.tipo = "torre";
     this.tipoDeTorre = tipo;
