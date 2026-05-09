@@ -361,20 +361,23 @@ class Juego {
 
   pausa() {
     this.pausado = true;
+    this.app?.ticker?.stop();
+    PIXI.Ticker.shared.stop();
     console.log("pausando juego");
   }
 
   reanudar() {
-    if (this.pausado) {
-      console.log("reanudando juego");
-      this.pausado = false;
-      this.gameloop();
-    }
+    if (!this.pausado) return;
+    console.log("reanudando juego");
+    this.pausado = false;
+    this.app?.ticker?.start();
+    PIXI.Ticker.shared.start();
+    this.gameloop();
   }
 
   gameOver() {
     // this.interrumpirGameloop = true;
-    this.pausado = true;
+    this.pausa();
     // this.containerPrincipal.visible = false;
     this.ui.mostrarGameOver();
   }

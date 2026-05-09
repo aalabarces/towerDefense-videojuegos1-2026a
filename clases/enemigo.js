@@ -337,10 +337,6 @@ class Enemigo extends EntidadConSalud {
   }
 
   render() {
-    if (this.juego.pausado) {
-      this.sprite.animationSpeed = 0;
-      return;
-    }
     if (this.estado === EstadosEnemigo.MUERTO) return;
     if (!this.container) return;
 
@@ -349,7 +345,6 @@ class Enemigo extends EntidadConSalud {
   }
 
   update() {
-    if (this.juego.pausado) return;
     if (this.estado === EstadosEnemigo.MUERTO || !this.activo) return;
 
     this.enemigosCerca = this.juego.getEnemigosCerca(
