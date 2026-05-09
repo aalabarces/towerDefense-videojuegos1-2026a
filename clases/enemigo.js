@@ -15,7 +15,7 @@ class Enemigo extends EntidadConSalud {
 
     juego.enemigos.push(this);
     this.nombre = generateName();
-
+    this.activo = false;
     this.juego = juego;
     this.dataJson = juego.assetsCivil;
     this.distanciaParaLlegar = 150;
@@ -62,6 +62,22 @@ class Enemigo extends EntidadConSalud {
   asignarTarget(obj) {
     this.targetX = obj.x;
     this.targetY = obj.y;
+  }
+
+  activar() {
+    this.activo = true;
+  }
+
+  desactivar() {
+    this.activo = false;
+  }
+
+  resetear() {
+    this.desactivar();
+    this.nodoDelCaminoActual = 0;
+    this.asignarTarget(this.juego.nivel.nodosDelCamino[0]);
+    this.cambiarAnimacion(this.estado, this.direccion);
+    this.salud = this.vidaMax;
   }
 
   crearSpriteAnimado(frames, nombre, opciones = {}) {
@@ -330,7 +346,7 @@ class Enemigo extends EntidadConSalud {
   }
 
   update() {
-    if (this.estado === EstadosEnemigo.MUERTO) return;
+    if (this.estado === EstadosEnemigo.MUERTO || !this.activo) return;
 
     this.enemigosCerca = this.juego.getEnemigosCerca(
       this.posicion.x,
