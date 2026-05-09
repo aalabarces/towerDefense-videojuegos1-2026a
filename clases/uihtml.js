@@ -65,6 +65,7 @@ class UIHTML {
     ];
 
     this.crearBotones();
+    this.crearDivGameOver();
   }
 
   crearBotones() {
@@ -86,6 +87,7 @@ class UIHTML {
     this.contenedorHTML.appendChild(button);
 
     button.onclick = (event) => {
+      this.juego.quitarFantasma();
       event.stopPropagation();
       //   const cual = button.getAttribute("numero-de-boton");
       //   console.log(cualBoton.url);
@@ -93,5 +95,24 @@ class UIHTML {
 
       this.juego.crearSpriteFantasma(button.data);
     };
+  }
+
+  crearDivGameOver() {
+    const div = document.createElement("div");
+    div.style.display = "none";
+    div.id = "game-over";
+    div.innerHTML = `
+      <h1>Game Over</h1>
+      <button onclick="window.location.reload()">Replay</button>
+    `;
+
+    this.gameOverDiv = div;
+    document.body.appendChild(div);
+  }
+
+  mostrarGameOver() {
+    document.body.classList.add("game-over");
+    this.gameOverDiv.style.display = "block";
+    this.contenedorHTML.style.display = "none";
   }
 }

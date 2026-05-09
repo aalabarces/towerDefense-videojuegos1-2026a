@@ -1,4 +1,6 @@
 class EntidadConSalud extends GameObject {
+  static OFFSET_BARRA_VIDA = 20;
+
   constructor(x, y, juego) {
     super(x, y, juego);
     this.vida = 1;
@@ -12,15 +14,17 @@ class EntidadConSalud extends GameObject {
     this.barraVida = new PIXI.Graphics();
     this.barraVidaContainer.addChild(this.barraVidaFondo);
     this.barraVidaContainer.addChild(this.barraVida);
+    // Por encima del sprite del edificio/personaje (mismo zIndex = orden de addChild tapa la barra).
+    this.barraVidaContainer.zIndex = 100;
     this.container.addChild(this.barraVidaContainer);
 
-    this.inicializarBarraDeVida();
+    setTimeout(() => this.inicializarBarraDeVida(), 500);
   }
 
   morir() {
-    console.log("morir", this.id);
-    this.explotar();
     this.sacameDeLosArrays();
+    this.explotar();
+
     this.container.destroy();
     this.container = null;
   }
@@ -35,7 +39,8 @@ class EntidadConSalud extends GameObject {
     this.barraVidaFondo.fill({ color: 0x000000, alpha: 0.5 });
 
     this.actualizarBarraDeVida();
-    this.barraVidaContainer.y = -this.radio * 2 - 35;
+    this.barraVidaContainer.y =
+      -this.sprite.height - EntidadConSalud.OFFSET_BARRA_VIDA;
     this.barraVidaContainer.visible = this.mostrarVida;
   }
 
@@ -48,13 +53,18 @@ class EntidadConSalud extends GameObject {
     this.barraVida.fill({ color: color, alpha: 1 });
   }
 
+  chequearMuerte() {
+    if (this.vida > 0) return;
+    this.morir();
+  }
+
   recibirDaño(cuanto) {
     this.vida -= cuanto;
     this.actualizarBarraDeVida();
-    if (this.vida <= 0) {
-      this.morir();
-    }
+    this.chequearMuerte();
   }
 
-  explotar() {}
+  explotar() {
+    this.juego.ponerExplosion(this.posicion.x, this.posicion.y);
+  }
 }

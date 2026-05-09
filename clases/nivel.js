@@ -102,7 +102,10 @@ class Nivel {
         x: 820,
         y: 1980,
       },
-    ];
+    ].map((nodo) => ({
+      x: nodo.x * ESCALA_FONDO,
+      y: nodo.y * ESCALA_FONDO,
+    }));
   }
 
   spawnEnemigo() {

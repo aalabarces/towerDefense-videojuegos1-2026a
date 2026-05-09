@@ -20,14 +20,18 @@ class Enemigo extends EntidadConSalud {
     this.dataJson = juego.assetsCivil;
     this.distanciaParaLlegar = 300;
     this.rapidezWalk = 1;
-    this.rapidezRun = 3;
+    this.rapidezRun = 2;
 
     this.aceleracionParaCorrer = 0.25;
 
     this.radio = 10;
+    this.radioDeVision = 100;
+    this.velocidadMaxima = 2;
+    this.distanciaParaEscaparmeDeLaPersonaQueMeAsusta = 40;
+    this.enemigosCerca = [];
+    this.distanciaPersonal = 30; // distancia mínima deseada respecto a otros enemigos
 
-    this.mostrarVida = opciones.mostrarVida ?? true;
-
+    this.mostrarVida = true;
     this.estado = opciones.estadoInicial ?? "idle";
     this.direccion = opciones.direccionInicial ?? "down";
     this.ultimoEstadoDeMovimiento = this.estado;
@@ -40,7 +44,7 @@ class Enemigo extends EntidadConSalud {
       "1h_slash": {},
     };
     this.listaDeSprites = [];
-    this.spriteActual = null;
+    this.sprite = null;
 
     this.estatico = false;
 
@@ -51,7 +55,7 @@ class Enemigo extends EntidadConSalud {
     this.cargarSpritesAnimados(this.dataJson);
     this.spriteSplat = this.crearSpriteSplat(juego.assetsSplat);
     this.cambiarAnimacion(this.estado, this.direccion);
-    this.inicializarBarraDeVida();
+
     this.render();
   }
 
@@ -115,6 +119,7 @@ class Enemigo extends EntidadConSalud {
 
   cargarSpritesAnimados(textureData) {
     const animations = textureData.animations ?? {};
+
     const direcciones = ["up", "left", "down", "right"];
 
     for (let estado of ["idle", "walk", "run", "1h_slash"]) {
@@ -180,7 +185,7 @@ class Enemigo extends EntidadConSalud {
     }
 
     if (
-      this.spriteActual === sprite &&
+      this.sprite === sprite &&
       this.estado === estado &&
       this.direccion === direccion
     ) {
@@ -190,11 +195,11 @@ class Enemigo extends EntidadConSalud {
     this.ocultarTodosLosSprites();
     sprite.visible = true;
 
-    if (this.spriteActual !== sprite) {
+    if (this.sprite !== sprite) {
       sprite.gotoAndPlay(0);
     }
 
-    this.spriteActual = sprite;
+    this.sprite = sprite;
     this.estado = estado;
     this.direccion = direccion;
 
@@ -270,7 +275,7 @@ class Enemigo extends EntidadConSalud {
     this.spriteSplat.rotation = Math.random() * 2;
     this.spriteSplat.y = Math.random() * -20 - 50;
     this.spriteSplat.animationSpeed = Math.random() * 0.66 + 0.5;
-    const scale = Math.min(Math.max(cuanto * 10, 0.25), 2);
+    const scale = Math.max(cuanto * 10, 0.25);
     this.spriteSplat.scale.set(
       scale * Math.random() * 0.5 + 0.75,
       scale * Math.random() * 0.5 + 0.75,
@@ -283,11 +288,6 @@ class Enemigo extends EntidadConSalud {
     this.mostrarSplat(cuanto);
   }
 
-  chequearMuerte() {
-    if (this.vida > 0) return;
-    this.morir();
-  }
-
   // morir() {
   //   this.ocultarTodosLosSprites();
   //   const spriteHurt = this.obtenerSpriteSegunEstadoYDireccion(
@@ -297,7 +297,7 @@ class Enemigo extends EntidadConSalud {
   //   if (spriteHurt) {
   //     spriteHurt.visible = true;
   //     spriteHurt.gotoAndPlay(0);
-  //     this.spriteActual = spriteHurt;
+  //     this.sprite = spriteHurt;
   //   }
 
   //   this.estado = EstadosEnemigo.MUERTO;
@@ -327,7 +327,14 @@ class Enemigo extends EntidadConSalud {
   update() {
     if (this.estado === EstadosEnemigo.MUERTO) return;
 
+    this.enemigosCerca = this.juego.getEnemigosCerca(
+      this.posicion.x,
+      this.posicion.y,
+      this.radioDeVision,
+    );
+
     this.repelerObstaculos();
+    this.separacion();
     this.moverHaciaTarget();
 
     // this.actualizarVelocidadLinealYAngulo();
@@ -345,19 +352,36 @@ class Enemigo extends EntidadConSalud {
   }
 
   repelerObstaculos() {
-    const cuantoMirarAlrededor = 200;
+    const cuantoMirarAlrededor = 300;
+
+    const miPosFutura = {
+      x: this.posicion.x + this.velocidad.x * 30,
+      y: this.posicion.y + this.velocidad.y * 30,
+    };
+
     const piedrasCerca = this.juego.getPiedrasCerca(
-      this.posicion.x,
-      this.posicion.y,
+      miPosFutura.x,
+      miPosFutura.y,
       cuantoMirarAlrededor,
     );
 
-    if (piedrasCerca.length === 0) return;
+    const torresCerca = this.juego.getTorresCerca(
+      miPosFutura.x,
+      miPosFutura.y,
+      cuantoMirarAlrededor,
+    );
+
+    const nuevoArrayConTodosLosObstaculosCerca = [
+      ...piedrasCerca,
+      ...torresCerca,
+    ];
+
+    if (nuevoArrayConTodosLosObstaculosCerca.length === 0) return;
     const fuerzaMaxima = 0.8;
 
-    for (let piedra of piedrasCerca) {
-      const dx = this.posicion.x - piedra.posicion.x;
-      const dy = this.posicion.y - piedra.posicion.y;
+    for (let obstaculo of nuevoArrayConTodosLosObstaculosCerca) {
+      const dx = miPosFutura.x - obstaculo.posicion.x;
+      const dy = miPosFutura.y - obstaculo.posicion.y;
       const distancia = Math.hypot(dx, dy);
       if (distancia < 0.0001) continue;
 
@@ -372,6 +396,91 @@ class Enemigo extends EntidadConSalud {
     }
 
     super.update();
+  }
+
+  // cohesion() {
+  //   let promX = 0;
+  //   let promY = 0;
+  //   //calculamos promedio de posicion de los enemigos q puedo ver:
+  //   for (let i = 0; i < this.enemigosCerca.length; i++) {
+  //     promX += this.enemigosCerca[i].posicion.x;
+  //     promY += this.enemigosCerca[i].posicion.y;
+  //   }
+
+  //   if (this.enemigosCerca.length === 0) return;
+
+  //   promX /= this.enemigosCerca.length;
+  //   promY /= this.enemigosCerca.length;
+
+  //   // vector desde mi posicion hasta el centro de masa (promX,promY)
+  //   const dx = promX - this.posicion.x;
+  //   const dy = promY - this.posicion.y;
+  //   const dist = Math.sqrt(dx * dx + dy * dy);
+
+  //   if (dist > 0) {
+  //     // magnitud de la aceleracion hacia el objetivo
+  //     const fuerza = 0.1; // ajustable: mayor -> acelera mas rapido hacia el punto
+
+  //     // normalizamos y aplicamos fuerza
+  //     const ax = (dx / dist) * fuerza;
+  //     const ay = (dy / dist) * fuerza;
+
+  //     this.agregarAceleracion(ax, ay);
+  //   }
+  // }
+
+  // alineacion() {
+  //   let promX = 0;
+  //   let promY = 0;
+  //   //calculamos promedio de posicion de los enemigos q puedo ver:
+  //   for (let i = 0; i < this.enemigosCerca.length; i++) {
+  //     promX += this.enemigosCerca[i].velocidad.x;
+  //     promY += this.enemigosCerca[i].velocidad.y;
+  //   }
+
+  //   if (this.enemigosCerca.length === 0) return;
+
+  //   promX /= this.enemigosCerca.length;
+  //   promY /= this.enemigosCerca.length;
+
+  //   // vector desde mi posicion hasta el centro de masa (promX,promY)
+  //   const dx = promX - this.velocidad.x;
+  //   const dy = promY - this.velocidad.y;
+  //   const dist = Math.sqrt(dx * dx + dy * dy);
+
+  //   if (dist > 0) {
+  //     // magnitud de la aceleracion hacia el objetivo
+  //     const fuerza = 0.05; // ajustable: mayor -> acelera mas rapido hacia el punto
+
+  //     // normalizamos y aplicamos fuerza
+  //     const ax = (dx / dist) * fuerza;
+  //     const ay = (dy / dist) * fuerza;
+
+  //     this.agregarAceleracion(ax, ay);
+  //   }
+  // }
+
+  separacion() {
+    if (!this.enemigosCerca || this.enemigosCerca.length === 0) return;
+
+    const fuerzaMax = 0.5; // fuerza máxima de empuje para separarse (ajustable)
+
+    for (let i = 0; i < this.enemigosCerca.length; i++) {
+      const otro = this.enemigosCerca[i];
+      let dx = otro.posicion.x - this.posicion.x;
+      let dy = otro.posicion.y - this.posicion.y;
+      let dist = Math.hypot(dx, dy);
+
+      if (dist === 0) continue;
+
+      if (dist < this.distanciaPersonal) {
+        const ratio = this.distanciaPersonal / dist;
+        const ax = -(dx / dist) * fuerzaMax * ratio;
+        const ay = -(dy / dist) * fuerzaMax * ratio;
+
+        this.agregarAceleracion(ax, ay);
+      }
+    }
   }
 
   moverHaciaTarget() {

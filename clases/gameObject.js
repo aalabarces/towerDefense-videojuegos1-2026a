@@ -150,8 +150,8 @@ class GameObject {
     this.aplicarFriccion(deltaTimeRatio);
     this.limitarVelocidad();
     this.actualizarPosicion(deltaTimeRatio);
-    this.resolverColisionesPropias(gameObjects, deltaTimeRatio);
-    this.limitarVelocidad();
+    // this.resolverColisionesPropias(gameObjects, deltaTimeRatio);
+
     this.actualizarVelocidadLinealYAngulo();
   }
 

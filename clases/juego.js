@@ -1,5 +1,5 @@
-const MUNDO_ANCHO = 7000;
-const MUNDO_ALTO = 4048;
+const MUNDO_ANCHO = 7000 * ESCALA_FONDO;
+const MUNDO_ALTO = 4048 * ESCALA_FONDO;
 const CAMARA_VELOCIDAD = 20;
 const ZOOM_MIN = 0.3;
 const ZOOM_MAX = 2.0;
@@ -37,7 +37,7 @@ class Juego {
     this.deltaTime = 1 / 60;
     this.numeroDeFrame = 0;
     this.pausado = false;
-    this.interrumpirGameloop = false;
+    // this.interrumpirGameloop = false;
 
     this.estamosArrastrandoUnItemPAraPonerlo = null;
 
@@ -203,6 +203,9 @@ class Juego {
   async cargarAssets() {
     this.assetsCivil = await PIXI.Assets.load("assets/civil1.json");
     this.assetsSplat = await PIXI.Assets.load("assets/splat/splat.json");
+    this.assetExplosion = await PIXI.Assets.load(
+      "assets/explosion/explosions.json",
+    );
 
     const imagenes = {
       centroUrbano: "assets/centroUrbano.png",
@@ -241,9 +244,8 @@ class Juego {
   }
 
   spawnCentroUrbano(x, y) {
-    const centroUrbano = new CentroUrbano(this);
-    this.centroUrbano = centroUrbano;
-    return this.agregarGameObject(centroUrbano);
+    this.centroUrbano = new CentroUrbano(this);
+    return this.agregarGameObject(this.centroUrbano);
   }
 
   spawnTorre(x, y, tipo = 1) {
@@ -258,11 +260,11 @@ class Juego {
     return this.agregarGameObject(piedra);
   }
 
-  moverEnemigosHacia(x, y) {
-    for (let enemigo of this.enemigos) {
-      enemigo.setearTarget(x, y);
-    }
-  }
+  // moverEnemigosHacia(x, y) {
+  //   for (let enemigo of this.enemigos) {
+  //     enemigo.setearTarget(x, y);
+  //   }
+  // }
 
   onKeyDown(event) {
     this.teclas[event.key.toLowerCase()] = true;
@@ -273,6 +275,7 @@ class Juego {
   }
 
   quitarFantasma() {
+    if (!this.arrastrandoFantasma || !this.arrastrandoFantasma?.sprite) return;
     this.containerPrincipal.removeChild(this.arrastrandoFantasma.sprite);
     this.arrastrandoFantasma.sprite.destroy();
     this.arrastrandoFantasma = null;
@@ -342,10 +345,10 @@ class Juego {
   }
 
   gameOver() {
-    this.interrumpirGameloop = true;
+    // this.interrumpirGameloop = true;
     this.pausado = true;
-    this.containerPrincipal.visible = false;
-    // this.ui.mostrarGameOver();
+    // this.containerPrincipal.visible = false;
+    this.ui.mostrarGameOver();
   }
 
   onVisibilityChange() {
@@ -419,7 +422,7 @@ class Juego {
 
   gameloop() {
     // this.actualizarMetricasDeTiempo(deltaTimeMsReal);
-    if (this.interrumpirGameloop) return;
+    if (this.pausado) return;
 
     this.moverCamara();
 
@@ -446,6 +449,14 @@ class Juego {
 
   getPiedrasCerca(x, y, radio) {
     return this.piedras.filter((obstaculo) => {
+      return (
+        distancia(x, y, obstaculo.posicion.x, obstaculo.posicion.y) < radio
+      );
+    });
+  }
+
+  getTorresCerca(x, y, radio) {
+    return this.torres.filter((obstaculo) => {
       return (
         distancia(x, y, obstaculo.posicion.x, obstaculo.posicion.y) < radio
       );
@@ -494,6 +505,46 @@ class Juego {
     this.arrastrandoFantasma.sprite.y = this.mouse.y;
 
     this.containerPrincipal.addChild(this.arrastrandoFantasma.sprite);
+  }
+
+  ponerExplosion(x, y) {
+    const spriteAnimado = new PIXI.AnimatedSprite(
+      this.assetExplosion.animations.explosion2,
+    );
+
+    spriteAnimado.zIndex = y;
+    spriteAnimado.label = "explosion1";
+    spriteAnimado.visible = true;
+    spriteAnimado.loop = false;
+    spriteAnimado.animationSpeed = 0.33;
+    spriteAnimado.scale.set(1.5);
+    spriteAnimado.x = x;
+    spriteAnimado.y = y;
+    spriteAnimado.anchor.set(0.5, 1);
+
+    spriteAnimado.onComplete = () => {
+      this.containerPrincipal.removeChild(spriteAnimado);
+      spriteAnimado.destroy();
+    };
+
+    this.containerPrincipal.addChild(spriteAnimado);
+
+    spriteAnimado.play();
+
+    const enemigosEnArea = this.getEnemigosCerca(x, y, 100);
+    const torresEnArea = this.getTorresCerca(x, y, 100);
+    const nuevoArrayConTodosLosObjetosEnArea = [
+      ...enemigosEnArea,
+      ...torresEnArea,
+      this.centroUrbano,
+    ];
+
+    for (let objeto of nuevoArrayConTodosLosObjetosEnArea) {
+      const cuantoDaño = 50 / distanciaCuadrada(objeto, { posicion: { x, y } });
+
+      // console.log("cuantoDaño", cuantoDaño);
+      objeto.recibirDaño(cuantoDaño);
+    }
   }
 }
 
