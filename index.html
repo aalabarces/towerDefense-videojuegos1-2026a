@@ -56,6 +56,19 @@
             cursor: pointer;
         }
 
+        .botoncito.activo {
+            opacity: 1;
+            pointer-events: all;
+            touch-action: all
+        }
+
+        .botoncito:not(.activo) {
+
+            opacity: 0.3;
+            pointer-events: none;
+            touch-action: none;
+        }
+
         .botoncito:hover {
             background-color: gray;
         }

@@ -89,6 +89,7 @@ class UIHTML {
     const button = document.createElement("button");
 
     button.data = cualBoton;
+    cualBoton.buttonElement = button;
     button.style.backgroundImage = "url(" + cualBoton.url + ")";
 
     button.setAttribute("numero-de-boton", cualBoton.id);
@@ -127,9 +128,23 @@ class UIHTML {
     this.plataDiv = div;
   }
 
+  actualizarBotonesSegunPlata() {
+    for (let i = 0; i < this.botones.length; i++) {
+      const cualBoton = this.botones[i];
+      if (!cualBoton || !cualBoton?.buttonElement) continue;
+
+      if (cualBoton.precio <= this.juego.usuario.plata) {
+        this.botones[i].buttonElement.classList.add("activo");
+      } else {
+        this.botones[i].buttonElement.classList.remove("activo");
+      }
+    }
+  }
+
   actualizarPlata(plata) {
     if (!this.plataDiv) return;
     this.plataDiv.textContent = "$ " + (plata || 0);
+    this.actualizarBotonesSegunPlata();
   }
 
   mostrarGameOver() {

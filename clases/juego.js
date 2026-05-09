@@ -260,13 +260,18 @@ class Juego {
 
   spawnTorre(x, y, tipo = 1) {
     const torre = new Torre(x, y, this, tipo);
+    this.usuario.plata -= this.ui.botones.find(
+      (boton) => boton.id === tipo,
+    ).precio;
 
     return this.agregarGameObject(torre);
   }
 
   spawnPiedra(x, y, tipo = 1) {
     const piedra = new Piedra(x, y, this, tipo);
-
+    this.usuario.plata -= this.ui.botones.find(
+      (boton) => boton.id === tipo,
+    ).precio;
     return this.agregarGameObject(piedra);
   }
 
