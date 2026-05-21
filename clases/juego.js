@@ -34,6 +34,7 @@ class Juego {
     this.centrosUrbanos = [];
     this.personas = [];
     this.casitas = [];
+    this.balas = [];
 
     this.pixiInicializado = false;
     this.teclas = {};
@@ -237,6 +238,7 @@ class Juego {
       rock3: "assets/rock3.png",
       rock4: "assets/rock4.png",
       bg: "assets/fondo.jpg",
+      sombra: "assets/sombra.png",
     };
 
     const entradas = Object.entries(imagenes);
@@ -269,6 +271,15 @@ class Juego {
     return this.agregarGameObject(enemigo);
   }
 
+  emitirBala(quienDispara, aQuien) {
+    const bala = new Bala(
+      quienDispara.posicion.x,
+      quienDispara.posicion.y,
+      this,
+      aQuien,
+    );
+    this.agregarGameObject(bala);
+  }
   spawnCentroUrbano(x, y) {
     this.centroUrbano = new CentroUrbano(this);
     return this.agregarGameObject(this.centroUrbano);
@@ -585,7 +596,8 @@ class Juego {
     ];
 
     for (let objeto of nuevoArrayConTodosLosObjetosEnArea) {
-      const cuantoDaño = 50 / distanciaCuadrada(objeto, { posicion: { x, y } });
+      const cuantoDaño =
+        150 / distanciaCuadrada(objeto, { posicion: { x, y } });
 
       // console.log("cuantoDaño", cuantoDaño);
       objeto.recibirDaño(cuantoDaño);

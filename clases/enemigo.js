@@ -25,12 +25,13 @@ class Enemigo extends EntidadConSalud {
     this.aceleracionParaCorrer = 0.25;
     this.distanciaParaExplotarElCentroUrbano = 50;
     this.radio = 10;
-    this.radioDeVision = 100;
+    this.radioDeVision = 500;
     this.velocidadMaxima = 2;
     this.distanciaParaEscaparmeDeLaPersonaQueMeAsusta = 40;
     this.enemigosCerca = [];
+    this.torresCerca = [];
     this.distanciaPersonal = 30; // distancia mínima deseada respecto a otros enemigos
-
+    this.distanciaAlCentroUrbano = 9999999;
     this.mostrarVida = true;
     this.estado = opciones.estadoInicial ?? "idle";
     this.direccion = opciones.direccionInicial ?? "down";
@@ -56,10 +57,23 @@ class Enemigo extends EntidadConSalud {
     this.spriteSplat = this.crearSpriteSplat(juego.assetsSplat);
     this.cambiarAnimacion(this.estado, this.direccion);
 
+    this.crearSombra();
+    this.crearFSMparaComportamientos();
+
     this.render();
   }
 
+  crearSombra() {
+    this.sombra = new PIXI.Sprite(this.juego.texturas.sombra);
+    this.sombra.anchor.set(0.5, 0.5);
+    this.sombra.scale.set(0.1);
+    this.sombra.zIndex = -1;
+    this.sombra.alpha = 0.5;
+    this.container.addChild(this.sombra);
+  }
+
   asignarTarget(obj) {
+    this.objTarget = obj;
     this.targetX = obj.x;
     this.targetY = obj.y;
   }
@@ -344,33 +358,65 @@ class Enemigo extends EntidadConSalud {
     this.sincronizarAnimacionConMovimiento();
   }
 
-  update() {
-    if (this.estado === EstadosEnemigo.MUERTO || !this.activo) return;
-
+  percibirEntorno() {
     this.enemigosCerca = this.juego.getEnemigosCerca(
       this.posicion.x,
       this.posicion.y,
       this.radioDeVision,
     );
 
-    this.repelerObstaculos();
-    this.separacion();
-    this.moverHaciaTarget();
+    this.torresCerca = this.juego.getTorresCerca(
+      this.posicion.x,
+      this.posicion.y,
+      this.radioDeVision,
+    );
 
-    // this.actualizarVelocidadLinealYAngulo();
-    const dist = distancia(
+    this.torreMasCerca = this.buscarTorreMasCercaOCentroUrbano();
+
+    this.distanciaAlCentroUrbano = distancia(
       this.posicion.x,
       this.posicion.y,
       this.juego.centroUrbano.posicion.x,
       this.juego.centroUrbano.posicion.y,
     );
+  }
 
-    if (dist < this.distanciaParaExplotarElCentroUrbano) {
-      this.morir();
-    }
+  buscarTorreMasCercaOCentroUrbano() {
+    return [...this.torresCerca, this.juego.centroUrbano].sort((a, b) =>
+      distanciaCuadrada(this, a) > distanciaCuadrada(this, b) ? 1 : -1,
+    )[0];
+  }
+
+  update() {
+    if (this.estado === EstadosEnemigo.MUERTO || !this.activo) return;
+
+    this.percibirEntorno();
+
+    this.behaviorFSM.update();
     super.update();
   }
 
+  siEstoyCercaDelCentroUrbanoMorir() {
+    if (
+      this.distanciaAlCentroUrbano < this.distanciaParaExplotarElCentroUrbano
+    ) {
+      this.morir();
+    }
+  }
+
+  siEstoyCercaDeUnaTorreMorir() {
+    for (let i = 0; i < this.torresCerca.length; i++) {
+      const torre = this.torresCerca[i];
+      if (
+        distanciaCuadrada(this, torre) <
+        this.distanciaParaExplotarElCentroUrbano ** 2
+      ) {
+        this.morir();
+        //early return
+        return;
+      }
+    }
+  }
   repelerObstaculos() {
     const cuantoMirarAlrededor = 200;
     const cuantoMirarAlFuturo = 15;
@@ -503,6 +549,18 @@ class Enemigo extends EntidadConSalud {
       }
     }
   }
+  siYaLlegueAlPuntoDelCaminoPAsarAlSiguiente() {
+    if (this.distHaciaTarget <= this.distanciaParaLlegar) {
+      this.nodoDelCaminoActual++;
+      //si ya no hay mas nodos, ir al centro urbano
+      const objTarget =
+        this.juego.nivel.nodosDelCamino[this.nodoDelCaminoActual] ||
+        this.juego.centroUrbano.posicion;
+
+      this.asignarTarget(objTarget);
+      // return;
+    }
+  }
 
   moverHaciaTarget() {
     if (this.targetX == null || this.targetY == null) {
@@ -514,17 +572,6 @@ class Enemigo extends EntidadConSalud {
     const dx = this.targetX - this.posicion.x;
     const dy = this.targetY - this.posicion.y;
     this.distHaciaTarget = Math.hypot(dx, dy);
-
-    if (this.distHaciaTarget <= this.distanciaParaLlegar) {
-      this.nodoDelCaminoActual++;
-      //si ya no hay mas nodos, ir al centro urbano
-      const objTarget =
-        this.juego.nivel.nodosDelCamino[this.nodoDelCaminoActual] ||
-        this.juego.centroUrbano.posicion;
-
-      this.asignarTarget(objTarget);
-      // return;
-    }
 
     const rapidez = this.aceleracionParaCorrer;
     const vx = dx / this.distHaciaTarget;
@@ -538,7 +585,14 @@ class Enemigo extends EntidadConSalud {
       this.direccion,
     );
   }
-}
 
-window.Enemigo = Enemigo;
-window.EstadosEnemigo = EstadosEnemigo;
+  crearFSMparaComportamientos() {
+    this.behaviorFSM = new FSM(this, {
+      states: {
+        normal: EnemigoNormalBehaviorState,
+        moribundo: EnemigoMoribundoBehaviorState,
+      },
+      initialState: "normal",
+    });
+  }
+}

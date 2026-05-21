@@ -39,7 +39,7 @@ class Torre extends Estructura {
   }
 
   dispararA(enemigo) {
-    enemigo.recibirDaño(0.1);
+    // enemigo.recibirDaño(0.05);
 
     const dx = enemigo.posicion.x - this.posicion.x;
     const dy = enemigo.posicion.y - 30 - this.posicion.y - this.lineaDisparo.y;
@@ -52,6 +52,8 @@ class Torre extends Estructura {
       this.sprite.tint = 0xffffff;
       this.lineaDisparo.visible = false;
     }, 30);
+
+    // this.juego.emitirBala(this, enemigo);
   }
 }
 
