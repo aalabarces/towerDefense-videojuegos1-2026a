@@ -39,7 +39,8 @@ class Torre extends Estructura {
   }
 
   dispararA(enemigo) {
-    // enemigo.recibirDaño(0.05);
+    this.juego.gestorDeAudio.reproducirEfecto('disparo');
+    enemigo.recibirDaño(0.05);
 
     const dx = enemigo.posicion.x - this.posicion.x;
     const dy = enemigo.posicion.y - 30 - this.posicion.y - this.lineaDisparo.y;

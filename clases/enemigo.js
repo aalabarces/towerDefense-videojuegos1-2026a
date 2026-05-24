@@ -315,6 +315,7 @@ class Enemigo extends EntidadConSalud {
   recibirDaño(cuanto) {
     super.recibirDaño(cuanto);
     this.mostrarSplat(cuanto);
+    this.juego.gestorDeAudio.reproducirEfecto('grunido');
   }
 
   morir() {
@@ -356,6 +357,10 @@ class Enemigo extends EntidadConSalud {
 
     super.render();
     this.sincronizarAnimacionConMovimiento();
+
+    if (this.estado === "walk" || this.estado === "run") {
+      this.juego.gestorDeAudio.reproducirEfecto('pasos');
+    }
   }
 
   percibirEntorno() {

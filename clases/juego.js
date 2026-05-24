@@ -49,6 +49,7 @@ class Juego {
     this.estamosArrastrandoUnItemPAraPonerlo = null;
 
     this.nivel = new Nivel(this);
+    this.gestorDeAudio = new GestorDeAudio(this);
   }
 
   sumarPlata(cuanto) {
@@ -212,6 +213,7 @@ class Juego {
    * Spritesheets y texturas usadas por entidades y escenario.
    */
   async cargarAssets() {
+    await this.gestorDeAudio.inicializar();
     this.assetEnemigo = await PIXI.Assets.load("assets/enemigo.json");
     this.assetEnemigoDuro = await PIXI.Assets.load("assets/enemigoDuro.json");
     this.assetEnemigoRapido = await PIXI.Assets.load(

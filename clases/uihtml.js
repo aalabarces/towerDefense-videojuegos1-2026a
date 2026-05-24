@@ -36,10 +36,9 @@ class UIHTML {
     button.onclick = (event) => {
       this.juego.quitarFantasma();
       event.stopPropagation();
-      //   const cual = button.getAttribute("numero-de-boton");
-      //   console.log(cualBoton.url);
       console.log(button.data);
 
+      this.juego.gestorDeAudio.reproducirInterfaz('clic');
       this.juego.crearSpriteFantasma(button.data);
     };
   }
