@@ -98,6 +98,7 @@ class GestorDeAudio {
     const opcionesReproduccion = {
       volume: (opciones.volumen !== undefined ? opciones.volumen : 1) * volumenBase,
       loop: opciones.bucle || false,
+      speed: opciones.speed || 1,
       complete: () => {
         this.instanciasActivas[grupo]--;
       }
