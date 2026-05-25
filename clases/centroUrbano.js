@@ -1,10 +1,6 @@
-const POSICION_CENTRO_URBANO = {
-  x: 660 * ESCALA_FONDO,
-  y: 2520 * ESCALA_FONDO,
-};
 class CentroUrbano extends Estructura {
-  constructor(juego) {
-    super(POSICION_CENTRO_URBANO.x, POSICION_CENTRO_URBANO.y, juego);
+  constructor(x, y, juego) {
+    super(x, y, juego);
     this.radio = 80;
 
     this.tipo = "centroUrbano";

@@ -1,132 +1,52 @@
 class Nivel {
   constructor(juego) {
     this.juego = juego;
-    this.nodosDelCamino = [
-      {
-        x: 6876,
-        y: 3840,
-      },
-      {
-        x: 6246,
-        y: 3393,
-      },
-      {
-        x: 5800,
-        y: 2850,
-      },
-      {
-        x: 5483,
-        y: 2070,
-      },
-      {
-        x: 5586,
-        y: 1558,
-      },
-      {
-        x: 5950,
-        y: 1205,
-      },
-      {
-        x: 6183,
-        y: 855,
-      },
-      {
-        x: 5683,
-        y: 505,
-      },
-      {
-        x: 4553,
-        y: 300,
-      },
-      {
-        x: 3566,
-        y: 483,
-      },
-      {
-        x: 2900,
-        y: 720,
-      },
-      {
-        x: 2700,
-        y: 1056,
-      },
-      {
-        x: 2950,
-        y: 1400,
-      },
-      {
-        x: 3650,
-        y: 1540,
-      },
-      {
-        x: 3870,
-        y: 1900,
-      },
-      {
-        x: 3376,
-        y: 2450,
-      },
-      {
-        x: 3725,
-        y: 2896,
-      },
-      {
-        x: 4309,
-        y: 3186,
-      },
-      {
-        x: 3720,
-        y: 3813,
-      },
-      {
-        x: 2840,
-        y: 3600,
-      },
-      {
-        x: 2460,
-        y: 3200,
-      },
-      {
-        x: 2030,
-        y: 1913,
-      },
-      {
-        x: 1820,
-        y: 483,
-      },
-      {
-        x: 1110,
-        y: 320,
-      },
-      {
-        x: 820,
-        y: 1980,
-      },
-    ].map((nodo) => ({
-      x: nodo.x * ESCALA_FONDO,
-      y: nodo.y * ESCALA_FONDO,
-    }));
+
+    this.cargarJSON();
 
     this.oleadaActual = null;
     this.oleadas = 0;
     this.tiempoEntreOleadas = 5000;
     this.tiempoSiguienteOleada = 5000;
+
+    this.juego.agregarFondoDelMundo();
+    // this.juego.spawnCentroUrbano();
+
+    this.posicionDeSpawn = { x: -100, y: -100 };
+    this.nodosDelCamino = [this.posicionDeSpawn];
   }
 
-  spawnEnemigo() {
-    this.juego.spawnEnemigo(
-      MUNDO_ANCHO * 1.02 + Math.random() * 100,
-      MUNDO_ALTO * 1.02 + Math.random() * 100,
+  async cargarJSON() {
+    const dataNivel1 = await (await fetch("niveles/nivel1.json")).json();
+
+    this.nodosDelCamino = dataNivel1.puntos.map((nodo) => ({
+      x: nodo.x,
+      y: nodo.y,
+    }));
+    this.posicionCentroUrbano = dataNivel1.posicionCentroUrbano;
+    this.juego.spawnCentroUrbano(
+      this.posicionCentroUrbano.x,
+      this.posicionCentroUrbano.y,
+    );
+  }
+
+  spawnEnemigo(tipo) {
+    return this.juego.spawnEnemigo(
+      this.posicionDeSpawn.x,
+      this.posicionDeSpawn.y,
+      {
+        tipo,
+      },
     );
   }
 
   spawnOleada() {
-    console.log("Spawn de oleada");
+    // console.log("Spawn de oleada");
     this.oleadas++;
     this.oleadaActual = new Oleada(this.juego, this.oleadas);
     this.tiempoSiguienteOleada = this.tiempoEntreOleadas;
-    console.log("Spawn de oleada ", this.oleadas);
-    console.log("Tiempo siguiente oleada ", this.tiempoSiguienteOleada);
+    // console.log("Spawn de oleada ", this.oleadas);
+    // console.log("Tiempo siguiente oleada ", this.tiempoSiguienteOleada);
   }
 
   update() {

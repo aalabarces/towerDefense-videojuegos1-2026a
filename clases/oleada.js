@@ -58,11 +58,7 @@ class Oleada {
         this.enemigosDisponibles[
           Math.floor(Math.random() * this.enemigosDisponibles.length)
         ];
-      const enemigo = this.juego.spawnEnemigo(
-        MUNDO_ANCHO * 1.02 + Math.random() * 100,
-        MUNDO_ALTO * 1.02 + Math.random() * 100,
-        { tipo: tipoEnemigo.clase },
-      );
+      const enemigo = this.juego.nivel.spawnEnemigo(tipoEnemigo.clase);
       this.enemigosDeLaOleada.push(enemigo);
       this.presupuesto -= tipoEnemigo.costo;
     }
@@ -77,7 +73,6 @@ class Oleada {
     if (this.tiempoSiguienteSpawn <= 0) {
       const enemigo = this.enemigosDeLaOleada.pop();
       if (enemigo) {
-        enemigo.activar();
         this.tiempoSiguienteSpawn = this.intervaloSpawn;
       }
     }

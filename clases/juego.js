@@ -1,5 +1,5 @@
-const MUNDO_ANCHO = 7000 * ESCALA_FONDO;
-const MUNDO_ALTO = 4048 * ESCALA_FONDO;
+const MUNDO_ANCHO = 3500;
+const MUNDO_ALTO = 2024;
 const CAMARA_VELOCIDAD = 20;
 const ZOOM_MAX = 2.0;
 const ZOOM_FACTOR = 0.001;
@@ -48,7 +48,6 @@ class Juego {
     this.usuario = new Usuario();
     this.estamosArrastrandoUnItemPAraPonerlo = null;
 
-    this.nivel = new Nivel(this);
     this.gestorDeAudio = new GestorDeAudio(this);
   }
 
@@ -73,8 +72,9 @@ class Juego {
     await this.cargarAssets();
 
     this.crearContainerPrincipal();
-    this.agregarFondoDelMundo();
-    this.spawnCentroUrbano();
+    // this.agregarFondoDelMundo();
+    // this.spawnCentroUrbano();
+    this.nivel = new Nivel(this);
 
     this.crearInterfazUsuario();
     this.registrarEventosDeEntrada();
@@ -283,7 +283,7 @@ class Juego {
     this.agregarGameObject(bala);
   }
   spawnCentroUrbano(x, y) {
-    this.centroUrbano = new CentroUrbano(this);
+    this.centroUrbano = new CentroUrbano(x, y, this);
     return this.agregarGameObject(this.centroUrbano);
   }
 

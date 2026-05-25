@@ -1,11 +1,3 @@
-const EstadosEnemigo = Object.freeze({
-  IDLE: "idle",
-  WALK: "walk",
-  RUN: "run",
-  HURT: "hurt",
-  MUERTO: "muerto",
-});
-
 class Enemigo extends EntidadConSalud {
   constructor(x, y, juego, opciones = { estadoInicial: "walk" }) {
     super(x, y, juego);
@@ -15,7 +7,7 @@ class Enemigo extends EntidadConSalud {
 
     juego.enemigos.push(this);
     this.nombre = generateName();
-    this.activo = false;
+
     this.juego = juego;
     this.dataJson = opciones.dataJson ?? juego.assetsCivil;
     this.distanciaParaLlegar = 150;
@@ -59,6 +51,7 @@ class Enemigo extends EntidadConSalud {
 
     this.crearSombra();
     this.crearFSMparaComportamientos();
+    this.crearFSMparaAnimacion();
 
     this.render();
   }
@@ -76,14 +69,6 @@ class Enemigo extends EntidadConSalud {
     this.objTarget = obj;
     this.targetX = obj.x;
     this.targetY = obj.y;
-  }
-
-  activar() {
-    this.activo = true;
-  }
-
-  desactivar() {
-    this.activo = false;
   }
 
   resetear() {
@@ -257,28 +242,28 @@ class Enemigo extends EntidadConSalud {
     this.cambiarAnimacion(estado, this.direccion);
   }
 
-  obtenerEstadoSegunVelocidadLineal() {
-    if (this.velocidadLineal < 0.01) {
-      return "idle";
-    }
+  // obtenerEstadoSegunVelocidadLineal() {
+  //   if (this.velocidadLineal < 0.01) {
+  //     return "idle";
+  //   }
 
-    const umbralRun = (this.rapidezWalk + this.rapidezRun) / 2;
-    return this.velocidadLineal >= umbralRun ? "run" : "walk";
-  }
+  //   const umbralRun = (this.rapidezWalk + this.rapidezRun) / 2;
+  //   return this.velocidadLineal >= umbralRun ? "run" : "walk";
+  // }
 
-  sincronizarAnimacionConMovimiento() {
-    if (
-      this.estado === EstadosEnemigo.HURT ||
-      this.estado === EstadosEnemigo.MUERTO
-    ) {
-      return;
-    }
+  // sincronizarAnimacionConMovimiento() {
+  //   // if (
+  //   //   this.estado === EstadosEnemigo.HURT ||
+  //   //   this.estado === EstadosEnemigo.MUERTO
+  //   // ) {
+  //   //   return;
+  //   // }
 
-    this.cambiarAnimacion(
-      this.obtenerEstadoSegunVelocidadLineal(),
-      this.direccion,
-    );
-  }
+  //   // this.cambiarAnimacion(
+  //   //   this.obtenerEstadoSegunVelocidadLineal(),
+  //   //   this.direccion,
+  //   // );
+  // }
 
   // chequearSiEstoyCercaDelTargetYFrenar() {
   //   if (this.targetX == null || this.targetY == null) {
@@ -315,7 +300,7 @@ class Enemigo extends EntidadConSalud {
   recibirDaño(cuanto) {
     super.recibirDaño(cuanto);
     this.mostrarSplat(cuanto);
-    this.juego.gestorDeAudio.reproducirEfecto('grunido');
+    this.juego.gestorDeAudio.reproducirEfecto("grunido");
   }
 
   morir() {
@@ -352,14 +337,17 @@ class Enemigo extends EntidadConSalud {
   }
 
   render() {
-    if (this.estado === EstadosEnemigo.MUERTO) return;
+    // if (this.estado === EstadosEnemigo.MUERTO) return;
     if (!this.container) return;
 
     super.render();
-    this.sincronizarAnimacionConMovimiento();
+    this.animationFSM.update();
 
-    if (this.estado === "walk" || this.estado === "run") {
-      this.juego.gestorDeAudio.reproducirEfecto('pasos');
+    if (
+      this.animationFSM.currentStateName === "caminando" ||
+      this.animationFSM.currentStateName === "corriendo"
+    ) {
+      this.juego.gestorDeAudio.reproducirEfecto("pasos");
     }
   }
 
@@ -384,6 +372,8 @@ class Enemigo extends EntidadConSalud {
       this.juego.centroUrbano.posicion.x,
       this.juego.centroUrbano.posicion.y,
     );
+
+    this.direccion = this.obtenerDireccionSegunAngulo();
   }
 
   buscarTorreMasCercaOCentroUrbano() {
@@ -393,8 +383,6 @@ class Enemigo extends EntidadConSalud {
   }
 
   update() {
-    if (this.estado === EstadosEnemigo.MUERTO || !this.activo) return;
-
     this.percibirEntorno();
 
     this.behaviorFSM.update();
@@ -466,8 +454,6 @@ class Enemigo extends EntidadConSalud {
         (fuerza * dy) / distancia,
       );
     }
-
-    super.update();
   }
 
   // cohesion() {
@@ -584,11 +570,22 @@ class Enemigo extends EntidadConSalud {
 
     this.agregarAceleracion(vx * rapidez, vy * rapidez);
 
-    this.direccion = this.obtenerDireccionSegunAngulo();
-    this.cambiarAnimacion(
-      this.obtenerEstadoSegunVelocidadLineal(),
-      this.direccion,
-    );
+    // this.cambiarAnimacion(
+    //   this.obtenerEstadoSegunVelocidadLineal(),
+    //   this.direccion,
+    // );
+  }
+
+  crearFSMparaAnimacion() {
+    this.animationFSM = new FSM(this, {
+      states: {
+        idle: EnemigoIdleAnimationState,
+        caminando: EnemigoCaminandoAnimationState,
+        corriendo: EnemigoCorriendoAnimationState,
+        aPuntoDeExplotar: EnemigoAPuntoDeExplotarAnimationState,
+      },
+      initialState: "idle",
+    });
   }
 
   crearFSMparaComportamientos() {
