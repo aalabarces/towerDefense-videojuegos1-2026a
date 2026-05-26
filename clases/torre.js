@@ -39,14 +39,14 @@ class Torre extends Estructura {
 
   obtenerDireccion8(dx, dy) {
     const angulo = Math.atan2(dy, dx) * (180 / Math.PI);
-    if (angulo >= -22.5 && angulo < 22.5) return "e";
-    if (angulo >= 22.5 && angulo < 67.5) return "se";
+    if (angulo >= -22.5 && angulo < 22.5) return "o";
+    if (angulo >= 22.5 && angulo < 67.5) return "so";
     if (angulo >= 67.5 && angulo < 112.5) return "s";
-    if (angulo >= 112.5 && angulo < 157.5) return "so";
-    if (angulo >= 157.5 || angulo < -157.5) return "o";
-    if (angulo >= -157.5 && angulo < -112.5) return "no";
+    if (angulo >= 112.5 && angulo < 157.5) return "se";
+    if (angulo >= 157.5 || angulo < -157.5) return "e";
+    if (angulo >= -157.5 && angulo < -112.5) return "ne";
     if (angulo >= -112.5 && angulo < -67.5) return "n";
-    return "ne";
+    return "no";
   }
 
   update() {
