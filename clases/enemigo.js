@@ -440,7 +440,7 @@ class Enemigo extends EntidadConSalud {
 
   repelerOtrosEnemigosAPuntoDeExplotar() {
     if (!this.enemigosCerca || this.enemigosCerca.length === 0) return;
-    const cuantoMirarAlrededor = 600;
+    const cuantoMirarAlrededor = 300;
 
     const fuerzaMaxima = 0.8;
 

@@ -30,7 +30,7 @@ class Torre extends Estructura {
       const frames = animations[dir];
       if (!frames) continue;
       this.spritesAnimados[dir] = this.crearSpriteAnimado(frames, dir, {
-        scale: 0.5,
+        scale: 0.75,
         loop: false,
         animationSpeed: 0,
       });
@@ -74,7 +74,7 @@ class Torre extends Estructura {
   }
 
   dispararA(enemigo) {
-    this.juego.gestorDeAudio.reproducirEfecto('disparo');
+    this.juego.gestorDeAudio.reproducirEfecto("disparo");
     enemigo.recibirDaño(0.05);
 
     const dx = enemigo.posicion.x - this.posicion.x;
