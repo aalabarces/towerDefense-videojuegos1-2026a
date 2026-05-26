@@ -237,6 +237,11 @@ class Juego {
       "assets/explosion/explosions.json",
     );
 
+    this.assetTorre1 = await PIXI.Assets.load({
+      src: "assets/torre_ss/torre1.json",
+      data: { cachePrefix: "torre1_" },
+    });
+
     const imagenes = {
       centroUrbano: "assets/centroUrbano.png",
       torre1: "assets/torre1.png",

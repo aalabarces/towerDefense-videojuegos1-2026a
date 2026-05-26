@@ -193,6 +193,32 @@
       }
     }
   },
+  "animations": {
+    "n": [
+      "n.png"
+    ],
+    "ne": [
+      "ne.png"
+    ],
+    "no": [
+      "no.png"
+    ],
+    "s": [
+      "s.png"
+    ],
+    "so": [
+      "so.png"
+    ],
+    "se": [
+      "se.png"
+    ],
+    "o": [
+      "o.png"
+    ],
+    "e": [
+      "e.png"
+    ]
+  },
   "meta": {
     "app": "http://free-tex-packer.com",
     "version": "0.6.7",

@@ -24,6 +24,11 @@ class GameObject {
     this.velocidadMaxima = 10;
     this.friccion = 1;
 
+    this.listaDeSprites = [];
+    this.sprite = null;
+    this.direccion = "s";
+    this.animacionActual = null;
+
     juego.gameObjects.push(this);
   }
 
@@ -156,6 +161,50 @@ class GameObject {
     // this.resolverColisionesPropias(this.juego.gameObjects, deltaTimeRatio);
 
     this.actualizarVelocidadLinealYAngulo();
+  }
+
+  //////////
+  // SPRITES ANIMADOS
+  //////////
+
+  crearSpriteAnimado(frames, nombre, opciones = {}) {
+    const spriteAnimado = new PIXI.AnimatedSprite(frames);
+
+    spriteAnimado.label = nombre;
+    spriteAnimado.visible = false;
+    spriteAnimado.loop = opciones.loop ?? true;
+    spriteAnimado.animationSpeed = opciones.animationSpeed ?? 0.12;
+    spriteAnimado.scale.set(opciones.scale ?? 1);
+    this.configurarOrigen(spriteAnimado);
+    spriteAnimado.play();
+
+    this.listaDeSprites.push(spriteAnimado);
+    this.container.addChild(spriteAnimado);
+
+    return spriteAnimado;
+  }
+
+  ocultarTodosLosSprites() {
+    for (let sprite of this.listaDeSprites) {
+      sprite.visible = false;
+    }
+  }
+
+  cambiarAnimacion(direccion) {
+    const sprite = this.spritesAnimados?.[direccion];
+
+    if (!sprite) return;
+    if (this.sprite === sprite && this.direccion === direccion) return;
+
+    this.ocultarTodosLosSprites();
+    sprite.visible = true;
+
+    if (this.sprite !== sprite) {
+      sprite.gotoAndPlay(0);
+    }
+
+    this.sprite = sprite;
+    this.direccion = direccion;
   }
 
   //////////

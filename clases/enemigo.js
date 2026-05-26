@@ -25,9 +25,9 @@ class Enemigo extends EntidadConSalud {
     this.distanciaPersonal = 30; // distancia mínima deseada respecto a otros enemigos
     this.distanciaAlCentroUrbano = 9999999;
     this.mostrarVida = true;
-    this.estado = opciones.estadoInicial ?? "idle";
+    // this.estado = opciones.estadoInicial ?? "idle";
     this.direccion = opciones.direccionInicial ?? "down";
-    this.ultimoEstadoDeMovimiento = this.estado;
+    // this.ultimoEstadoDeMovimiento = this.estado;
 
     this.spritesAnimados = {
       idle: {},
@@ -37,8 +37,6 @@ class Enemigo extends EntidadConSalud {
       "1h_slash": {},
       spellcast: {},
     };
-    this.listaDeSprites = [];
-    this.sprite = null;
 
     this.estatico = false;
 
@@ -48,7 +46,7 @@ class Enemigo extends EntidadConSalud {
 
     this.cargarSpritesAnimados(this.dataJson);
     this.spriteSplat = this.crearSpriteSplat(juego.assetsSplat);
-    this.cambiarAnimacion(this.estado, this.direccion);
+    this.cambiarAnimacion("idle", this.direccion);
 
     this.crearSombra();
     this.crearFSMparaComportamientos();
@@ -80,24 +78,13 @@ class Enemigo extends EntidadConSalud {
   }
 
   crearSpriteAnimado(frames, nombre, opciones = {}) {
-    const spriteAnimado = new PIXI.AnimatedSprite(frames);
-
-    spriteAnimado.label = nombre;
-    spriteAnimado.visible = false;
-    spriteAnimado.loop = opciones.loop ?? true;
-    spriteAnimado.animationSpeed = opciones.animationSpeed ?? 0.12;
-    spriteAnimado.scale.set(opciones.scale ?? 1);
-    this.configurarOrigen(spriteAnimado);
-    spriteAnimado.play();
+    const spriteAnimado = super.crearSpriteAnimado(frames, nombre, opciones);
 
     spriteAnimado.onComplete = () => {
       if (!spriteAnimado.loop) {
         this.cambiarAnimacion("idle", this.direccion);
       }
     };
-
-    this.listaDeSprites.push(spriteAnimado);
-    this.container.addChild(spriteAnimado);
 
     return spriteAnimado;
   }
@@ -186,12 +173,6 @@ class Enemigo extends EntidadConSalud {
     return null;
   }
 
-  ocultarTodosLosSprites() {
-    for (let sprite of this.listaDeSprites) {
-      sprite.visible = false;
-    }
-  }
-
   cambiarAnimacion(estado, direccion = this.direccion) {
     const sprite = this.obtenerSpriteSegunEstadoYDireccion(estado, direccion);
 
@@ -201,7 +182,7 @@ class Enemigo extends EntidadConSalud {
 
     if (
       this.sprite === sprite &&
-      this.estado === estado &&
+      this.animacionActual === estado &&
       this.direccion === direccion
     ) {
       return;
@@ -215,7 +196,7 @@ class Enemigo extends EntidadConSalud {
     }
 
     this.sprite = sprite;
-    this.estado = estado;
+    this.animacionActual = estado;
     this.direccion = direccion;
 
     if (estado !== "hurt") {
@@ -237,10 +218,6 @@ class Enemigo extends EntidadConSalud {
     }
 
     return "right";
-  }
-
-  setEstado(estado) {
-    this.cambiarAnimacion(estado, this.direccion);
   }
 
   // obtenerEstadoSegunVelocidadLineal() {

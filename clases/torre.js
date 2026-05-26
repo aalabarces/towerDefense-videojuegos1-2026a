@@ -8,7 +8,9 @@ class Torre extends Estructura {
     this.tipoDeTorre = tipo;
     this.cooldown = 80;
     this.tiempoDesdeUltimoDisparo = 0;
-    this.inicializarSprite(juego.texturas[`torre${tipo}`], 2);
+
+    this.cargarSpritesTorre(juego.assetTorre1);
+    this.cambiarAnimacion("s");
 
     this.lineaDisparo = new PIXI.Sprite(PIXI.Texture.WHITE);
     this.lineaDisparo.width = 2;
@@ -18,6 +20,33 @@ class Torre extends Estructura {
     this.container.addChild(this.lineaDisparo);
 
     juego.torres.push(this);
+  }
+
+  cargarSpritesTorre(textureData) {
+    const animations = textureData.animations ?? {};
+    this.spritesAnimados = {};
+
+    for (let dir of ["n", "ne", "e", "se", "s", "so", "o", "no"]) {
+      const frames = animations[dir];
+      if (!frames) continue;
+      this.spritesAnimados[dir] = this.crearSpriteAnimado(frames, dir, {
+        scale: 0.5,
+        loop: false,
+        animationSpeed: 0,
+      });
+    }
+  }
+
+  obtenerDireccion8(dx, dy) {
+    const angulo = Math.atan2(dy, dx) * (180 / Math.PI);
+    if (angulo >= -22.5 && angulo < 22.5) return "e";
+    if (angulo >= 22.5 && angulo < 67.5) return "se";
+    if (angulo >= 67.5 && angulo < 112.5) return "s";
+    if (angulo >= 112.5 && angulo < 157.5) return "so";
+    if (angulo >= 157.5 || angulo < -157.5) return "o";
+    if (angulo >= -157.5 && angulo < -112.5) return "no";
+    if (angulo >= -112.5 && angulo < -67.5) return "n";
+    return "ne";
   }
 
   update() {
@@ -30,9 +59,15 @@ class Torre extends Estructura {
     );
 
     if (this.enemigosCerca.length === 0) return;
+
+    const enemigoCercano = this.enemigosCerca[0];
+    const dx = enemigoCercano.posicion.x - this.posicion.x;
+    const dy = enemigoCercano.posicion.y - this.posicion.y;
+    this.cambiarAnimacion(this.obtenerDireccion8(dx, dy));
+
     if (this.tiempoDesdeUltimoDisparo < this.cooldown) return;
 
-    this.dispararA(this.enemigosCerca[0]);
+    this.dispararA(enemigoCercano);
     this.tiempoDesdeUltimoDisparo = 0;
 
     super.update();
@@ -50,11 +85,10 @@ class Torre extends Estructura {
 
     this.sprite.tint = 0xaa0000;
     setTimeout(() => {
+      if (!this.sprite) return;
       this.sprite.tint = 0xffffff;
       this.lineaDisparo.visible = false;
     }, 30);
-
-    // this.juego.emitirBala(this, enemigo);
   }
 }
 
