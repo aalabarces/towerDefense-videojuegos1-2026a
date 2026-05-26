@@ -2970,25 +2970,57 @@
       "slash_right_4",
       "slash_right_5"
     ],
-    "shoot_up": [
+    "sacar_arma_up": [
       "shoot_up_0",
       "shoot_up_1",
       "shoot_up_2"
     ],
-    "shoot_left": [
+    "sacar_arma_left": [
       "shoot_left_0",
       "shoot_left_1",
       "shoot_left_2"
     ],
-    "shoot_down": [
+    "sacar_arma_down": [
       "shoot_down_0",
       "shoot_down_1",
       "shoot_down_2"
     ],
-    "shoot_right": [
+    "sacar_arma_right": [
       "shoot_right_0",
       "shoot_right_1",
       "shoot_right_2"
+    ],
+    "disparando_up": [
+      "shoot_up_2"
+    ],
+    "disparando_left": [
+      "shoot_left_2"
+    ],
+    "disparando_down": [
+      "shoot_down_2"
+    ],
+    "disparando_right": [
+      "shoot_right_2"
+    ],
+    "guardando_arma_up": [
+      "shoot_up_2",
+      "shoot_up_1",
+      "shoot_up_0"
+    ],
+    "guardando_arma_left": [
+      "shoot_left_2",
+      "shoot_left_1",
+      "shoot_left_0"
+    ],
+    "guardando_arma_down": [
+      "shoot_down_2",
+      "shoot_down_1",
+      "shoot_down_0"
+    ],
+    "guardando_arma_right": [
+      "shoot_right_2",
+      "shoot_right_1",
+      "shoot_right_0"
     ],
     "hurt": [
       "hurt_0",
