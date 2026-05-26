@@ -39,7 +39,7 @@ class Oleada {
   }
 
   calcularPresupuesto() {
-    return 10 + 16 * Math.pow(1.42, this.numero - 1);
+    return 10 + 16 * Math.pow(1.22, this.numero - 1);
   }
 
   obtenerEnemigosDesbloqueados() {

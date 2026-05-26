@@ -7,7 +7,7 @@ class EnemigoMoribundoBehaviorState extends FSMState {
 
     // this.owner.separacion();
     this.owner.moverHaciaTarget();
-    // this.owner.repelerObstaculos();
+    this.owner.repelerObstaculos(2);
     this.owner.siEstoyCercaDelCentroUrbanoMorir();
 
     this.owner.siEstoyCercaDeUnaTorreMorir();

@@ -25,8 +25,10 @@ class EntidadConSalud extends GameObject {
     this.sacameDeLosArrays();
     this.explotar();
 
-    this.container.destroy();
-    this.container = null;
+    if (this.container) {
+      this.container.destroy();
+      this.container = null;
+    }
   }
 
   //////////
@@ -59,13 +61,13 @@ class EntidadConSalud extends GameObject {
   }
 
   recibirDaño(cuanto) {
-    this.vida -= cuanto;
+    this.vida -= Math.min(cuanto, 0.5);
     this.actualizarBarraDeVida();
     this.chequearMuerte();
   }
 
   explotar() {
-    this.juego.gestorDeAudio.reproducirEfecto('explosion');
+    this.juego.gestorDeAudio.reproducirEfecto("explosion");
     this.juego.ponerExplosion(this.posicion.x, this.posicion.y);
   }
 }

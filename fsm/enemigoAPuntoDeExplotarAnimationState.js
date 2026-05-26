@@ -1,5 +1,7 @@
 class EnemigoAPuntoDeExplotarAnimationState extends FSMState {
   onEnter() {}
-  update() {}
+  update() {
+    this.owner.cambiarAnimacion("spellcast", this.owner.direccion);
+  }
   doChecks() {}
 }

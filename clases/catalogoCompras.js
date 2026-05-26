@@ -39,28 +39,28 @@ const CATALOGO_BOTONES = [
     id: 1,
     url: "assets/rock1.png",
     nombreTextura: "rock1",
-    precio: 50,
+    precio: 15,
   },
   {
     tipo: "piedra",
     id: 2,
     url: "assets/rock2.png",
     nombreTextura: "rock2",
-    precio: 50,
+    precio: 15,
   },
   {
     tipo: "piedra",
     id: 3,
     url: "assets/rock3.png",
     nombreTextura: "rock3",
-    precio: 50,
+    precio: 15,
   },
   {
     tipo: "piedra",
     id: 4,
     url: "assets/rock4.png",
     nombreTextura: "rock4",
-    precio: 50,
+    precio: 15,
   },
 ];
 

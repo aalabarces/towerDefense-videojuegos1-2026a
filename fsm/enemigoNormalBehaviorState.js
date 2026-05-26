@@ -5,9 +5,10 @@ class EnemigoNormalBehaviorState extends FSMState {
     this.owner.siYaLlegueAlPuntoDelCaminoPAsarAlSiguiente();
     this.owner.repelerObstaculos();
     this.owner.siEstoyCercaDelCentroUrbanoMorir();
+    this.owner.repelerOtrosEnemigosAPuntoDeExplotar();
   }
   doChecks() {
-    if (this.owner.vida < 0.2) {
+    if (this.owner.vida < 0.66) {
       this.fsm.setState("moribundo");
     }
   }

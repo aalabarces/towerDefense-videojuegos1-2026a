@@ -46,6 +46,9 @@ class GameObject {
     this.juego.gameObjects = this.juego.gameObjects.filter(
       (gameObject) => gameObject !== this,
     );
+
+    this.juego.piedras = this.juego.piedras.filter((piedra) => piedra !== this);
+    this.juego.balas = this.juego.balas.filter((bala) => bala !== this);
   }
 
   configurarOrigen(displayObject) {
@@ -160,12 +163,14 @@ class GameObject {
   //////////
 
   render() {
+    if (!this.container) return;
     this.container.x = this.posicion.x;
     this.container.y = this.posicion.y;
     this.container.zIndex = this.posicion.y;
   }
 
   update() {
+    if (!this.container) return;
     this.aplicarFisica();
     this.render();
   }

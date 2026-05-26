@@ -214,14 +214,23 @@ class Juego {
    */
   async cargarAssets() {
     await this.gestorDeAudio.inicializar();
-    this.assetEnemigo = await PIXI.Assets.load("assets/enemigo.json");
-    this.assetEnemigoDuro = await PIXI.Assets.load("assets/enemigoDuro.json");
-    this.assetEnemigoRapido = await PIXI.Assets.load(
-      "assets/enemigoRapido.json",
-    );
-    this.assetEnemigoFuerte = await PIXI.Assets.load(
-      "assets/enemigoFuerte.json",
-    );
+
+    this.assetEnemigo = await PIXI.Assets.load({
+      src: "assets/enemigo.json",
+      data: { cachePrefix: "enemigo_" },
+    });
+    this.assetEnemigoDuro = await PIXI.Assets.load({
+      src: "assets/enemigoDuro.json",
+      data: { cachePrefix: "enemigoDuro_" },
+    });
+    this.assetEnemigoRapido = await PIXI.Assets.load({
+      src: "assets/enemigoRapido.json",
+      data: { cachePrefix: "enemigoRapido_" },
+    });
+    this.assetEnemigoFuerte = await PIXI.Assets.load({
+      src: "assets/enemigoFuerte.json",
+      data: { cachePrefix: "enemigoFuerte_" },
+    });
 
     this.assetsSplat = await PIXI.Assets.load("assets/splat/splat.json");
     this.assetExplosion = await PIXI.Assets.load(

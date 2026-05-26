@@ -15,7 +15,7 @@ class Enemigo extends EntidadConSalud {
     this.rapidezRun = 2;
 
     this.aceleracionParaCorrer = 0.25;
-    this.distanciaParaExplotarElCentroUrbano = 50;
+    this.distanciaParaExplotarElCentroUrbano = 100;
     this.radio = 10;
     this.radioDeVision = 500;
     this.velocidadMaxima = 2;
@@ -35,6 +35,7 @@ class Enemigo extends EntidadConSalud {
       run: {},
       hurt: {},
       "1h_slash": {},
+      spellcast: {},
     };
     this.listaDeSprites = [];
     this.sprite = null;
@@ -136,7 +137,7 @@ class Enemigo extends EntidadConSalud {
 
     const direcciones = ["up", "left", "down", "right"];
 
-    for (let estado of ["idle", "walk", "run", "1h_slash"]) {
+    for (let estado of ["idle", "walk", "run", "1h_slash", "spellcast"]) {
       for (let direccion of direcciones) {
         const key = `${estado}_${direccion}`;
         const frames = animations[key];
@@ -299,6 +300,7 @@ class Enemigo extends EntidadConSalud {
 
   recibirDaño(cuanto) {
     super.recibirDaño(cuanto);
+
     this.mostrarSplat(cuanto);
     this.juego.gestorDeAudio.reproducirEfecto("grunido");
   }
@@ -393,8 +395,12 @@ class Enemigo extends EntidadConSalud {
     if (
       this.distanciaAlCentroUrbano < this.distanciaParaExplotarElCentroUrbano
     ) {
-      this.morir();
+      this.inmolarme();
     }
+  }
+
+  inmolarme() {
+    this.behaviorFSM.setState("aPuntoDeExplotar");
   }
 
   siEstoyCercaDeUnaTorreMorir() {
@@ -404,15 +410,14 @@ class Enemigo extends EntidadConSalud {
         distanciaCuadrada(this, torre) <
         this.distanciaParaExplotarElCentroUrbano ** 2
       ) {
-        this.morir();
-        //early return
+        this.inmolarme();
+
         return;
       }
     }
   }
-  repelerObstaculos() {
+  repelerObstaculos(cuantoMirarAlFuturo = 15) {
     const cuantoMirarAlrededor = 200;
-    const cuantoMirarAlFuturo = 15;
 
     const miPosFutura = {
       x: this.posicion.x + this.velocidad.x * cuantoMirarAlFuturo,
@@ -444,6 +449,30 @@ class Enemigo extends EntidadConSalud {
       const dy = miPosFutura.y - obstaculo.posicion.y;
       const distancia = Math.hypot(dx, dy);
       if (distancia < 0.0001) continue;
+
+      const cercania = Math.max(0, 1 - distancia / cuantoMirarAlrededor);
+      const fuerza = fuerzaMaxima * cercania * cercania;
+      if (fuerza <= 0) continue;
+
+      this.agregarAceleracion(
+        (fuerza * dx) / distancia,
+        (fuerza * dy) / distancia,
+      );
+    }
+  }
+
+  repelerOtrosEnemigosAPuntoDeExplotar() {
+    if (!this.enemigosCerca || this.enemigosCerca.length === 0) return;
+    const cuantoMirarAlrededor = 600;
+
+    const fuerzaMaxima = 0.8;
+
+    for (let enemigo of this.enemigosCerca) {
+      if (enemigo.behaviorFSM.currentStateName !== "aPuntoDeExplotar") continue;
+      const dx = this.posicion.x - enemigo.posicion.x;
+      const dy = this.posicion.y - enemigo.posicion.y;
+      const distancia = Math.hypot(dx, dy);
+      if (distancia < 0.0001 || enemigo === this) continue;
 
       const cercania = Math.max(0, 1 - distancia / cuantoMirarAlrededor);
       const fuerza = fuerzaMaxima * cercania * cercania;
@@ -593,6 +622,7 @@ class Enemigo extends EntidadConSalud {
       states: {
         normal: EnemigoNormalBehaviorState,
         moribundo: EnemigoMoribundoBehaviorState,
+        aPuntoDeExplotar: EnemigoAPuntoDeExplotarBehaviorState,
       },
       initialState: "normal",
     });
