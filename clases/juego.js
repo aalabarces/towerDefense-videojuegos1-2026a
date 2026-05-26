@@ -242,6 +242,11 @@ class Juego {
       data: { cachePrefix: "torre1_" },
     });
 
+    this.assetPoli = await PIXI.Assets.load({
+      src: "assets/poli.json",
+      data: { cachePrefix: "poli_" },
+    });
+
     this.assetTorre2 = await PIXI.Assets.load({
       src: "assets/torre2_ss/torre2.json",
       data: { cachePrefix: "torre2_" },
@@ -258,6 +263,8 @@ class Juego {
       rock2: "assets/rock2.png",
       rock3: "assets/rock3.png",
       rock4: "assets/rock4.png",
+      torre3_base: "assets/torre3/base.png",
+      torre3_tapa: "assets/torre3/tapa.png",
       bg: "assets/fondo.jpg",
       sombra: "assets/sombra.png",
     };
@@ -310,6 +317,7 @@ class Juego {
     let clase = Torre1;
     if (tipo == 1) clase = Torre1;
     else if (tipo == 2) clase = Torre2;
+    else if (tipo == 3) clase = Torre3;
 
     const torre = new clase(x, y, this, tipo);
     this.usuario.plata -= precioCompra("torre", tipo);
