@@ -242,6 +242,11 @@ class Juego {
       data: { cachePrefix: "torre1_" },
     });
 
+    this.assetTorre2 = await PIXI.Assets.load({
+      src: "assets/torre2_ss/torre2.json",
+      data: { cachePrefix: "torre2_" },
+    });
+
     const imagenes = {
       centroUrbano: "assets/centroUrbano.png",
       torre1: "assets/torre1.png",
@@ -302,7 +307,11 @@ class Juego {
   }
 
   spawnTorre(x, y, tipo = 1) {
-    const torre = new Torre(x, y, this, tipo);
+    let clase = Torre1;
+    if (tipo == 1) clase = Torre1;
+    else if (tipo == 2) clase = Torre2;
+
+    const torre = new clase(x, y, this, tipo);
     this.usuario.plata -= precioCompra("torre", tipo);
 
     return this.agregarGameObject(torre);

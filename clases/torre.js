@@ -9,20 +9,20 @@ class Torre extends Estructura {
     this.cooldown = 80;
     this.tiempoDesdeUltimoDisparo = 0;
 
-    this.cargarSpritesTorre(juego.assetTorre1);
-    this.cambiarAnimacion("s");
+    // this.cargarSpritesTorre(juego.assetTorre1);
+    // this.cambiarAnimacion("s");
 
     this.lineaDisparo = new PIXI.Sprite(PIXI.Texture.WHITE);
     this.lineaDisparo.width = 2;
     this.lineaDisparo.anchor.set(0.5, 0);
-    this.lineaDisparo.y = -this.sprite.height * 0.85;
+    this.lineaDisparo.y = 0;
     this.lineaDisparo.visible = false;
     this.container.addChild(this.lineaDisparo);
 
     juego.torres.push(this);
   }
 
-  cargarSpritesTorre(textureData) {
+  cargarSpritesTorre(textureData, scale = 0.75) {
     const animations = textureData.animations ?? {};
     this.spritesAnimados = {};
 
@@ -30,23 +30,31 @@ class Torre extends Estructura {
       const frames = animations[dir];
       if (!frames) continue;
       this.spritesAnimados[dir] = this.crearSpriteAnimado(frames, dir, {
-        scale: 0.75,
+        scale: scale,
         loop: false,
         animationSpeed: 0,
       });
     }
   }
 
+  ajustarLineaDisparo() {
+    if (this.sprite) {
+      this.lineaDisparo.y = -this.sprite.height * 0.85;
+      this.inicializarBarraDeVida();
+    }
+  }
+
   obtenerDireccion8(dx, dy) {
     const angulo = Math.atan2(dy, dx) * (180 / Math.PI);
-    if (angulo >= -22.5 && angulo < 22.5) return "o";
-    if (angulo >= 22.5 && angulo < 67.5) return "so";
+
+    if (angulo >= -22.5 && angulo < 22.5) return "e";
+    if (angulo >= 22.5 && angulo < 67.5) return "se";
     if (angulo >= 67.5 && angulo < 112.5) return "s";
-    if (angulo >= 112.5 && angulo < 157.5) return "se";
-    if (angulo >= 157.5 || angulo < -157.5) return "e";
-    if (angulo >= -157.5 && angulo < -112.5) return "ne";
+    if (angulo >= 112.5 && angulo < 157.5) return "so";
+    if (angulo >= 157.5 || angulo < -157.5) return "o";
+    if (angulo >= -157.5 && angulo < -112.5) return "no";
     if (angulo >= -112.5 && angulo < -67.5) return "n";
-    return "no";
+    return "ne";
   }
 
   update() {
@@ -83,7 +91,7 @@ class Torre extends Estructura {
     this.lineaDisparo.rotation = Math.atan2(-dx, dy);
     this.lineaDisparo.visible = true;
 
-    this.sprite.tint = 0xaa0000;
+    if (this.sprite) this.sprite.tint = 0xaa0000;
     setTimeout(() => {
       if (!this.sprite) return;
       this.sprite.tint = 0xffffff;

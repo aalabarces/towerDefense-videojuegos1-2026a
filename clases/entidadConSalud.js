@@ -36,6 +36,7 @@ class EntidadConSalud extends GameObject {
   //////////
 
   inicializarBarraDeVida() {
+    if (!this.sprite) return;
     this.barraVidaFondo.clear();
     this.barraVidaFondo.rect(-25, -5, 50, 6);
     this.barraVidaFondo.fill({ color: 0x000000, alpha: 0.5 });
