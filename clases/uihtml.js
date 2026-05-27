@@ -38,7 +38,7 @@ class UIHTML {
       event.stopPropagation();
       console.log(button.data);
 
-      this.juego.gestorDeAudio.reproducirInterfaz('clic');
+      this.juego.gestorDeAudio.reproducirInterfaz("clic");
       this.juego.crearSpriteFantasma(button.data);
     };
   }
@@ -75,10 +75,13 @@ class UIHTML {
       }
     }
   }
+  update() {
+    this.actualizarPlata();
+  }
 
-  actualizarPlata(plata) {
+  actualizarPlata() {
     if (!this.plataDiv) return;
-    this.plataDiv.textContent = "$ " + (plata || 0);
+    this.plataDiv.textContent = "$ " + this.juego.usuario.plata;
     this.actualizarBotonesSegunPlata();
   }
 

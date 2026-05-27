@@ -178,7 +178,7 @@ class Juego {
     this.onClick = this.onClick.bind(this);
     this.onContextMenu = this.onContextMenu.bind(this);
     this.onWheel = this.onWheel.bind(this);
-    this.onMouseMove = this.onMouseMove.bind(this);
+
     this.onVisibilityChange = this.onVisibilityChange.bind(this);
     this.onWindowBlur = this.onWindowBlur.bind(this);
     this.onWindowFocus = this.onWindowFocus.bind(this);
@@ -187,7 +187,7 @@ class Juego {
     window.addEventListener("click", this.onClick);
     window.addEventListener("contextmenu", this.onContextMenu);
     window.addEventListener("wheel", this.onWheel, { passive: false });
-    window.addEventListener("mousemove", this.onMouseMove);
+
     // document.addEventListener("visibilitychange", this.onVisibilityChange);
     // window.addEventListener("blur", this.onWindowBlur);
     // window.addEventListener("focus", this.onWindowFocus);
@@ -338,14 +338,14 @@ class Juego {
     if (this.arrastrandoFantasma) {
       if (this.arrastrandoFantasma.dataBoton.tipo == "torre") {
         this.spawnTorre(
-          this.mouse.x,
-          this.mouse.y,
+          this.input.mouse.x,
+          this.input.mouse.y,
           this.arrastrandoFantasma.dataBoton.id,
         );
       } else if (this.arrastrandoFantasma.dataBoton.tipo == "piedra") {
         this.spawnPiedra(
-          this.mouse.x,
-          this.mouse.y,
+          this.input.mouse.x,
+          this.input.mouse.y,
           this.arrastrandoFantasma.dataBoton.id,
         );
       }
@@ -489,22 +489,26 @@ class Juego {
   }
 
   gameloop() {
-    if (!this.pausado) {
-      // this.actualizarMetricasDeTiempo(deltaTimeMsReal);
-      this.moverCamara();
-      for (let gameObject of this.gameObjects) {
-        gameObject.update();
-      }
-      this.nivel.update();
-      this.numeroDeFrame++;
-      this.deltaTime = performance.now() - this.ultimoFrameRenderizado;
-      this.fps = 1000 / this.deltaTime;
-      this.deltaTimeRatio = this.deltaTime / 16.666666666666667;
-      this.ultimoFrameRenderizado = performance.now();
-    };
+    if (this.pausado) return;
 
-    this.input.update();// limpiar input al final del frame
+    this.moverCamara();
+    for (let gameObject of this.gameObjects) {
+      gameObject.update();
+    }
+    this.nivel.update();
+    this.input.update();
+    this.ui.update();
+    this.actualizarDeltaTime();
+
     requestAnimationFrame(this.gameloop);
+  }
+
+  actualizarDeltaTime() {
+    this.numeroDeFrame++;
+    this.deltaTime = performance.now() - this.ultimoFrameRenderizado;
+    this.fps = 1000 / this.deltaTime;
+    this.deltaTimeRatio = this.deltaTime / 16.666666666666667;
+    this.ultimoFrameRenderizado = performance.now();
   }
 
   getEnemigosCerca(x, y, radio) {
@@ -529,22 +533,6 @@ class Juego {
     });
   }
 
-  onMouseMove(event) {
-    const zoom = this.containerPrincipal.scale.x;
-    const mundoX = (event.clientX - this.containerPrincipal.x) / zoom;
-    const mundoY = (event.clientY - this.containerPrincipal.y) / zoom;
-
-    this.mouse = { x: mundoX, y: mundoY };
-
-    if (this.arrastrandoFantasma) {
-      this.arrastrandoFantasma.sprite.x = this.mouse.x;
-      this.arrastrandoFantasma.sprite.y = this.mouse.y;
-      this.arrastrandoFantasma.sprite.zIndex = this.mouse.y;
-    }
-
-    // this.spawnEnemigo(mundoX, mundoY);
-  }
-
   crearSpriteFantasma(dataDelBoton) {
     // console.log("poner fantasma", dataDelBoton);
 
@@ -565,8 +553,8 @@ class Juego {
       dataBoton: dataDelBoton,
     };
 
-    this.arrastrandoFantasma.sprite.x = this.mouse.x;
-    this.arrastrandoFantasma.sprite.y = this.mouse.y;
+    this.arrastrandoFantasma.sprite.x = this.input.mouse.x;
+    this.arrastrandoFantasma.sprite.y = this.input.mouse.y;
 
     this.containerPrincipal.addChild(this.arrastrandoFantasma.sprite);
   }

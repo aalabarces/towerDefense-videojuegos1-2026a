@@ -3,9 +3,11 @@ class Input {
     this.juego = juego;
     this.teclas = {};
     this.teclasPresionadas = {};
-
+    this.mouse = { x: 0, y: 0 };
     window.addEventListener("keydown", this.onKeyDown.bind(this));
     window.addEventListener("keyup", this.onKeyUp.bind(this));
+
+    window.addEventListener("mousemove", this.onMouseMove.bind(this));
   }
 
   onKeyDown(event) {
@@ -18,6 +20,23 @@ class Input {
     }
 
     this.teclas[key] = true;
+  }
+
+  onMouseMove(event) {
+    if (!this.juego.containerPrincipal) return;
+    const zoom = this.juego.containerPrincipal.scale.x;
+    const mundoX = (event.clientX - this.juego.containerPrincipal.x) / zoom;
+    const mundoY = (event.clientY - this.juego.containerPrincipal.y) / zoom;
+
+    this.mouse = { x: mundoX, y: mundoY };
+
+    if (this.juego.arrastrandoFantasma) {
+      this.juego.arrastrandoFantasma.sprite.x = this.mouse.x;
+      this.juego.arrastrandoFantasma.sprite.y = this.mouse.y;
+      this.juego.arrastrandoFantasma.sprite.zIndex = this.mouse.y;
+    }
+
+    // this.spawnEnemigo(mundoX, mundoY);
   }
 
   onKeyUp(event) {
