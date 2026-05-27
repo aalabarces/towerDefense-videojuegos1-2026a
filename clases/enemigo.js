@@ -279,40 +279,12 @@ class Enemigo extends EntidadConSalud {
     super.recibirDaño(cuanto);
 
     this.mostrarSplat(cuanto);
-    this.juego.gestorDeAudio.reproducirEfecto("grunido");
   }
 
   morir() {
     super.morir();
+    this.juego.gestorDeAudio.reproducirEfecto("grunido");
     this.juego.sumarPlata(10);
-  }
-
-  // morir() {
-  //   this.ocultarTodosLosSprites();
-  //   const spriteHurt = this.obtenerSpriteSegunEstadoYDireccion(
-  //     EstadosEnemigo.HURT,
-  //     this.direccion,
-  //   );
-  //   if (spriteHurt) {
-  //     spriteHurt.visible = true;
-  //     spriteHurt.gotoAndPlay(0);
-  //     this.sprite = spriteHurt;
-  //   }
-
-  //   this.estado = EstadosEnemigo.MUERTO;
-  //   this.estatico = true;
-  //   this.radio = 0;
-  //   this.asignarVelocidad(0, 0);
-  //   this.velocidadLineal = 0;
-  //   this.targetX = null;
-  //   this.targetY = null;
-  //   this.barraVidaContainer.visible = false;
-  //   this.sacameDeLosArrays();
-  // }
-
-  setearTarget(targetX, targetY) {
-    this.targetX = targetX;
-    this.targetY = targetY;
   }
 
   render() {

@@ -37,14 +37,13 @@ class Juego {
     this.balas = [];
 
     this.pixiInicializado = false;
-    this.teclas = {};
+    this.input = new Input(this);
 
     this.deltaTimeRatio = 1;
     this.fps = 60;
     this.deltaTime = 1 / 60;
     this.numeroDeFrame = 0;
     this.pausado = false;
-    // this.interrumpirGameloop = false;
     this.usuario = new Usuario();
     this.estamosArrastrandoUnItemPAraPonerlo = null;
 
@@ -178,8 +177,6 @@ class Juego {
     this.onResize = this.onResize.bind(this);
     this.onClick = this.onClick.bind(this);
     this.onContextMenu = this.onContextMenu.bind(this);
-    this.onKeyDown = this.onKeyDown.bind(this);
-    this.onKeyUp = this.onKeyUp.bind(this);
     this.onWheel = this.onWheel.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.onVisibilityChange = this.onVisibilityChange.bind(this);
@@ -189,8 +186,6 @@ class Juego {
     window.addEventListener("resize", this.onResize);
     window.addEventListener("click", this.onClick);
     window.addEventListener("contextmenu", this.onContextMenu);
-    window.addEventListener("keydown", this.onKeyDown);
-    window.addEventListener("keyup", this.onKeyUp);
     window.addEventListener("wheel", this.onWheel, { passive: false });
     window.addEventListener("mousemove", this.onMouseMove);
     // document.addEventListener("visibilitychange", this.onVisibilityChange);
@@ -331,20 +326,6 @@ class Juego {
     return this.agregarGameObject(piedra);
   }
 
-  // moverEnemigosHacia(x, y) {
-  //   for (let enemigo of this.enemigos) {
-  //     enemigo.setearTarget(x, y);
-  //   }
-  // }
-
-  onKeyDown(event) {
-    this.teclas[event.key.toLowerCase()] = true;
-  }
-
-  onKeyUp(event) {
-    this.teclas[event.key.toLowerCase()] = false;
-  }
-
   quitarFantasma() {
     if (!this.arrastrandoFantasma || !this.arrastrandoFantasma?.sprite) return;
     this.containerPrincipal.removeChild(this.arrastrandoFantasma.sprite);
@@ -405,8 +386,8 @@ class Juego {
 
   pausa() {
     this.pausado = true;
-    this.app?.ticker?.stop();
-    PIXI.Ticker.shared.stop();
+    // this.app?.ticker?.stop();
+    // PIXI.Ticker.shared.stop();
     console.log("pausando juego");
   }
 
@@ -414,15 +395,13 @@ class Juego {
     if (!this.pausado) return;
     console.log("reanudando juego");
     this.pausado = false;
-    this.app?.ticker?.start();
-    PIXI.Ticker.shared.start();
-    this.gameloop();
+    // this.app?.ticker?.start();
+    // PIXI.Ticker.shared.start();
+    // this.gameloop();
   }
 
   gameOver() {
-    // this.interrumpirGameloop = true;
     this.pausa();
-    // this.containerPrincipal.visible = false;
     this.ui.mostrarGameOver();
   }
 
@@ -493,16 +472,16 @@ class Juego {
     if (!this.containerPrincipal) return;
     const desplazamiento = CAMARA_VELOCIDAD * this.deltaTimeRatio;
 
-    if (this.teclas["a"] || this.teclas["arrowleft"]) {
+    if (this.input.estaApretada("a") || this.input.estaApretada("arrowleft")) {
       this.containerPrincipal.x += desplazamiento;
     }
-    if (this.teclas["d"] || this.teclas["arrowright"]) {
+    if (this.input.estaApretada("d") || this.input.estaApretada("arrowright")) {
       this.containerPrincipal.x -= desplazamiento;
     }
-    if (this.teclas["w"] || this.teclas["arrowup"]) {
+    if (this.input.estaApretada("w") || this.input.estaApretada("arrowup")) {
       this.containerPrincipal.y += desplazamiento;
     }
-    if (this.teclas["s"] || this.teclas["arrowdown"]) {
+    if (this.input.estaApretada("s") || this.input.estaApretada("arrowdown")) {
       this.containerPrincipal.y -= desplazamiento;
     }
 
@@ -510,23 +489,21 @@ class Juego {
   }
 
   gameloop() {
-    // this.actualizarMetricasDeTiempo(deltaTimeMsReal);
-    if (this.pausado) return;
+    if (!this.pausado) {
+      // this.actualizarMetricasDeTiempo(deltaTimeMsReal);
+      this.moverCamara();
+      for (let gameObject of this.gameObjects) {
+        gameObject.update();
+      }
+      this.nivel.update();
+      this.numeroDeFrame++;
+      this.deltaTime = performance.now() - this.ultimoFrameRenderizado;
+      this.fps = 1000 / this.deltaTime;
+      this.deltaTimeRatio = this.deltaTime / 16.666666666666667;
+      this.ultimoFrameRenderizado = performance.now();
+    };
 
-    this.moverCamara();
-
-    for (let gameObject of this.gameObjects) {
-      gameObject.update();
-    }
-
-    // this.ui?.actualizarMetricasDeRendimiento();
-    this.nivel.update();
-    this.numeroDeFrame++;
-    this.deltaTime = performance.now() - this.ultimoFrameRenderizado;
-    this.fps = 1000 / this.deltaTime;
-    this.deltaTimeRatio = this.deltaTime / 16.666666666666667;
-    this.ultimoFrameRenderizado = performance.now();
-    this.ui.actualizarPlata(this.usuario?.plata || 0);
+    this.input.update();// limpiar input al final del frame
     requestAnimationFrame(this.gameloop);
   }
 
@@ -553,8 +530,6 @@ class Juego {
   }
 
   onMouseMove(event) {
-    // if (!this.teclas["1"]) return;
-
     const zoom = this.containerPrincipal.scale.x;
     const mundoX = (event.clientX - this.containerPrincipal.x) / zoom;
     const mundoY = (event.clientY - this.containerPrincipal.y) / zoom;
