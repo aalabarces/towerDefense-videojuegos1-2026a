@@ -14,6 +14,11 @@ class Nivel {
 
     this.posicionDeSpawn = { x: -100, y: -100 };
     this.nodosDelCamino = [this.posicionDeSpawn];
+
+    // debug:
+    this.debugNodosContainer = new PIXI.Container();
+    this.debugNodosContainer.zIndex = 9999;
+    this.juego.containerPrincipal.addChild(this.debugNodosContainer);
   }
 
   async cargarJSON() {
@@ -28,6 +33,44 @@ class Nivel {
       this.posicionCentroUrbano.x,
       this.posicionCentroUrbano.y,
     );
+
+    this.dibujarDebugNodos();
+  }
+
+  dibujarDebugNodos() {
+    if (!this.debugNodosContainer) return;
+
+    this.debugNodosContainer.removeChildren();
+
+    const lineas = new PIXI.Graphics();
+    const puntos = new PIXI.Graphics();
+
+    if (this.nodosDelCamino.length > 1) {
+      lineas.lineStyle({ width: 4, color: 0xffcc00, alpha: 0.85 });
+      lineas.moveTo(this.nodosDelCamino[0].x, this.nodosDelCamino[0].y);
+
+      for (let i = 1; i < this.nodosDelCamino.length; i++) {
+        const nodo = this.nodosDelCamino[i];
+        lineas.lineTo(nodo.x, nodo.y);
+      }
+    }
+
+    for (let i = 0; i < this.nodosDelCamino.length; i++) {
+      const nodo = this.nodosDelCamino[i];
+      puntos.circle(nodo.x, nodo.y, 10);
+      puntos.fill({ color: i === 0 ? 0x00d1ff : 0xff3d7f, alpha: 0.95 });
+      puntos.circle(nodo.x, nodo.y, 16);
+      puntos.stroke({ width: 2, color: 0x000000, alpha: 0.75 });
+    }
+
+    this.debugNodosContainer.addChild(lineas);
+    this.debugNodosContainer.addChild(puntos);
+  }
+
+  toggleDebug() {
+    if (this.debugNodosContainer) {
+      this.debugNodosContainer.visible = !this.debugNodosContainer.visible;
+    }
   }
 
   spawnEnemigo(tipo) {

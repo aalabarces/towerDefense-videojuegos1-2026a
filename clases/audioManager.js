@@ -43,7 +43,7 @@ class GestorDeAudio {
     this.cooldowns = {
       clic: 0,
       explosion: 50,
-      grunido: 300,
+      grunido: 1000,
       disparo: 100,
       pasos: 400
     };

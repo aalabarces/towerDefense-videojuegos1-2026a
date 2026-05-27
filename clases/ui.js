@@ -9,6 +9,7 @@ const PANEL_ALTO = BOTON_TAMANO + BOTON_PADDING * 2;
 class UI {
   constructor(juego) {
     this.juego = juego;
+    this.debugMode = false;
     this.fantasma = null;
     this.ignorarProximoClick = false;
     this.textoRendimiento = null;
@@ -25,6 +26,12 @@ class UI {
 
     this.onMouseMove = this.onMouseMove.bind(this);
     document.body.addEventListener("mousemove", this.onMouseMove);
+  }
+
+  update() {
+    if (this.debugMode) {
+      this.actualizarMetricasDeRendimiento();
+    }
   }
 
   crearPanel() {
@@ -111,7 +118,7 @@ class UI {
     this.textoRendimiento.zIndex = 1200;
 
     this.juego.app.stage.addChild(this.textoRendimiento);
-    this.actualizarMetricasDeRendimiento();
+    this.textoRendimiento.visible = false;
   }
 
   actualizarMetricasDeRendimiento() {
@@ -295,6 +302,24 @@ class UI {
 
     overlay.addChild(botonReplay);
     this.juego.app.stage.addChild(overlay);
+  }
+
+  toggleDebug() {
+    this.debugMode = !this.debugMode;
+    if (this.debugMode) {
+      mostrarDebug();
+    } else {
+      ocultarDebug();
+    }
+  }
+
+  mostrarDebug() {
+    this.textoRendimiento.visible = true;
+    this.juego.nivel.toggleDebug();
+  }
+  ocultarDebug() {
+    this.textoRendimiento.visible = false;
+    this.juego.nivel.toggleDebug();
   }
 }
 

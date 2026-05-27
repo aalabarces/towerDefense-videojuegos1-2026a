@@ -5,7 +5,9 @@ class EnemigoNormalBehaviorState extends FSMState {
     this.owner.siYaLlegueAlPuntoDelCaminoPAsarAlSiguiente();
     this.owner.repelerObstaculos();
     this.owner.siEstoyCercaDelCentroUrbanoMorir();
-    this.owner.repelerOtrosEnemigosAPuntoDeExplotar();
+    if (this.owner.objTarget !== this.owner.juego.centroUrbano) {
+      this.owner.repelerOtrosEnemigosAPuntoDeExplotar();
+    }
   }
   doChecks() {
     if (this.owner.vida < 0.66) {
