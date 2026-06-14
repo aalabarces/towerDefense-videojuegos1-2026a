@@ -1,6 +1,7 @@
 class Torre3 extends Torre {
   constructor(x, y, juego, tipo) {
     super(x, y, juego, tipo);
+    this.tipoDeTorre = 3;
     this.inicializarSpritesDeTorre3(1);
     this.ajustarLineaDisparo();
   }

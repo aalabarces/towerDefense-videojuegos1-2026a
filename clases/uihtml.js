@@ -22,6 +22,9 @@ class UIHTML {
   }
 
   crearBoton(cualBoton) {
+    const container = document.createElement("div");
+    container.classList.add("contenedor-botoncito");
+
     const button = document.createElement("button");
 
     button.data = cualBoton;
@@ -31,14 +34,22 @@ class UIHTML {
     button.setAttribute("numero-de-boton", cualBoton.id);
 
     button.classList.add("botoncito");
-    this.contenedorHTML.appendChild(button);
+
+    const priceLabel = document.createElement("span");
+    priceLabel.classList.add("precio-botoncito");
+    priceLabel.textContent = "$" + cualBoton.precio;
+
+    container.appendChild(button);
+    container.appendChild(priceLabel);
+
+    this.contenedorHTML.appendChild(container);
 
     button.onclick = (event) => {
       this.juego.quitarFantasma();
       event.stopPropagation();
       console.log(button.data);
 
-      this.juego.gestorDeAudio.reproducirInterfaz("clic");
+      this.juego.gestorDeAudio.reproducirInterfaz('clic');
       this.juego.crearSpriteFantasma(button.data);
     };
   }
@@ -89,5 +100,9 @@ class UIHTML {
     document.body.classList.add("game-over");
     this.gameOverDiv.style.display = "block";
     this.contenedorHTML.style.display = "none";
+  }
+
+  toggleDebug() {
+    this.juego.toggleDebug();
   }
 }

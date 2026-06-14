@@ -19,6 +19,7 @@ class Nivel {
     this.debugNodosContainer = new PIXI.Container();
     this.debugNodosContainer.zIndex = 9999;
     this.juego.containerPrincipal.addChild(this.debugNodosContainer);
+    this.debugNodosContainer.visible = false;
   }
 
   async cargarJSON() {
@@ -42,18 +43,7 @@ class Nivel {
 
     this.debugNodosContainer.removeChildren();
 
-    const lineas = new PIXI.Graphics();
     const puntos = new PIXI.Graphics();
-
-    if (this.nodosDelCamino.length > 1) {
-      lineas.lineStyle({ width: 4, color: 0xffcc00, alpha: 0.85 });
-      lineas.moveTo(this.nodosDelCamino[0].x, this.nodosDelCamino[0].y);
-
-      for (let i = 1; i < this.nodosDelCamino.length; i++) {
-        const nodo = this.nodosDelCamino[i];
-        lineas.lineTo(nodo.x, nodo.y);
-      }
-    }
 
     for (let i = 0; i < this.nodosDelCamino.length; i++) {
       const nodo = this.nodosDelCamino[i];
@@ -63,7 +53,6 @@ class Nivel {
       puntos.stroke({ width: 2, color: 0x000000, alpha: 0.75 });
     }
 
-    this.debugNodosContainer.addChild(lineas);
     this.debugNodosContainer.addChild(puntos);
   }
 

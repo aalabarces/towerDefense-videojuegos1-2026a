@@ -220,6 +220,10 @@ class GameObject {
 
   update() {
     if (!this.container) return;
+    if (this.esPreview) {
+      this.render();
+      return;
+    }
     this.aplicarFisica();
     this.render();
   }

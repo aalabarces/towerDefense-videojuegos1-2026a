@@ -31,9 +31,14 @@ class Input {
     this.mouse = { x: mundoX, y: mundoY };
 
     if (this.juego.arrastrandoFantasma) {
-      this.juego.arrastrandoFantasma.sprite.x = this.mouse.x;
-      this.juego.arrastrandoFantasma.sprite.y = this.mouse.y;
-      this.juego.arrastrandoFantasma.sprite.zIndex = this.mouse.y;
+      if (this.juego.arrastrandoFantasma.esPreview) {
+        this.juego.arrastrandoFantasma.posicion.x = this.mouse.x;
+        this.juego.arrastrandoFantasma.posicion.y = this.mouse.y;
+      } else {
+        this.juego.arrastrandoFantasma.sprite.x = this.mouse.x;
+        this.juego.arrastrandoFantasma.sprite.y = this.mouse.y;
+        this.juego.arrastrandoFantasma.sprite.zIndex = this.mouse.y;
+      }
     }
 
     // this.spawnEnemigo(mundoX, mundoY);
@@ -56,8 +61,8 @@ class Input {
         this.juego.pausa();
       }
     }
-    if (this.estaApretada("shift") && this.estaApretada("d")) {
-      // this.ui.toggleDebug();
+    if (this.estaApretada("shift") && this.fuePresionada("d")) {
+      this.juego.toggleDebug();
     }
     this.teclasPresionadas = {};
   }

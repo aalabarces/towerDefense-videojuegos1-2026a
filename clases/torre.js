@@ -9,6 +9,14 @@ class Torre extends Estructura {
     this.cooldown = 80;
     this.tiempoDesdeUltimoDisparo = 0;
 
+    this.rangeCircle = new PIXI.Graphics();
+    this.rangeCircle.beginFill(0xff0000, 0.15);
+    this.rangeCircle.lineStyle(2, 0xff0000, 0.4);
+    this.rangeCircle.drawCircle(0, 0, this.radioDeVision);
+    this.rangeCircle.endFill();
+    this.rangeCircle.visible = juego.debugMode;
+    this.container.addChild(this.rangeCircle);
+
     // this.cargarSpritesTorre(juego.assetTorre1);
     // this.cambiarAnimacion("s");
 
@@ -58,6 +66,10 @@ class Torre extends Estructura {
   }
 
   update() {
+    if (this.esPreview) {
+      this.render();
+      return;
+    }
     this.tiempoDesdeUltimoDisparo += this.juego.deltaTime;
 
     this.enemigosCerca = this.juego.getEnemigosCerca(

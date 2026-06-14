@@ -45,9 +45,15 @@ class Juego {
     this.numeroDeFrame = 0;
     this.pausado = false;
     this.usuario = new Usuario();
+    this.debugMode = false;
     this.estamosArrastrandoUnItemPAraPonerlo = null;
 
     this.gestorDeAudio = new GestorDeAudio(this);
+
+    this.clasesDeTorre = [Torre1, Torre2, Torre3].reduce((acc, clase) => {
+      acc[clase.tipoDeTorre] = clase;
+      return acc;
+    }, {});
   }
 
   sumarPlata(cuanto) {
@@ -78,6 +84,14 @@ class Juego {
     this.crearInterfazUsuario();
     this.registrarEventosDeEntrada();
     this.pixiInicializado = true;
+  }
+
+  /**
+   * Arranca el bucle de juego. Debe llamarse desde el menú principal
+   * una vez que el jugador hace clic en "Jugar", después de que todos
+   * los assets ya hayan sido cargados por init().
+   */
+  comenzarJuego() {
     this.iniciarBucleDeJuego();
   }
 
@@ -327,29 +341,38 @@ class Juego {
   }
 
   quitarFantasma() {
-    if (!this.arrastrandoFantasma || !this.arrastrandoFantasma?.sprite) return;
-    this.containerPrincipal.removeChild(this.arrastrandoFantasma.sprite);
-    this.arrastrandoFantasma.sprite.destroy();
+    if (!this.arrastrandoFantasma) return;
+    if (this.arrastrandoFantasma.esPreview) {
+      this.arrastrandoFantasma.sacameDeLosArrays();
+      this.containerPrincipal.removeChild(this.arrastrandoFantasma.container);
+      this.arrastrandoFantasma.container.destroy();
+    } else if (this.arrastrandoFantasma.sprite) {
+      this.containerPrincipal.removeChild(this.arrastrandoFantasma.sprite);
+      this.arrastrandoFantasma.sprite.destroy();
+    }
     this.arrastrandoFantasma = null;
   }
 
   onClick(event) {
     // console.log("on click", event);
     if (this.arrastrandoFantasma) {
-      if (this.arrastrandoFantasma.dataBoton.tipo == "torre") {
-        this.spawnTorre(
-          this.input.mouse.x,
-          this.input.mouse.y,
-          this.arrastrandoFantasma.dataBoton.id,
-        );
-      } else if (this.arrastrandoFantasma.dataBoton.tipo == "piedra") {
+      if (this.arrastrandoFantasma.esPreview) {
+        const torre = this.arrastrandoFantasma;
+        torre.esPreview = false;
+        torre.container.alpha = 1.0;
+        if (torre.rangeCircle) {
+          torre.rangeCircle.visible = this.debugMode;
+        }
+        this.usuario.plata -= precioCompra("torre", torre.tipoDeTorre);
+        this.arrastrandoFantasma = null;
+      } else if (this.arrastrandoFantasma.dataBoton && this.arrastrandoFantasma.dataBoton.tipo == "piedra") {
         this.spawnPiedra(
           this.input.mouse.x,
           this.input.mouse.y,
           this.arrastrandoFantasma.dataBoton.id,
         );
+        this.quitarFantasma();
       }
-      this.quitarFantasma();
     }
   }
 
@@ -511,6 +534,22 @@ class Juego {
     this.ultimoFrameRenderizado = performance.now();
   }
 
+  toggleDebug() {
+    this.debugMode = !this.debugMode;
+    if (this.nivel) {
+      this.nivel.toggleDebug();
+    }
+    this.actualizarVisualizacionRangos();
+  }
+
+  actualizarVisualizacionRangos() {
+    for (let torre of this.torres) {
+      if (torre.rangeCircle) {
+        torre.rangeCircle.visible = this.debugMode;
+      }
+    }
+  }
+
   getEnemigosCerca(x, y, radio) {
     return this.enemigos.filter((enemigo) => {
       return distancia(x, y, enemigo.posicion.x, enemigo.posicion.y) < radio;
@@ -536,27 +575,45 @@ class Juego {
   crearSpriteFantasma(dataDelBoton) {
     // console.log("poner fantasma", dataDelBoton);
 
-    const nuevoSpriteArrastrable = new PIXI.Sprite(
-      this.texturas[dataDelBoton.nombreTextura],
-    );
+    if (dataDelBoton.tipo === "torre") {
+      // Elegir clase de torre según el id del botón (1, 2, 3, etc.)
+      console.log(this.clasesDeTorre);
+      console.log(dataDelBoton.id);
+      const clase = this.clasesDeTorre[dataDelBoton.id] || Torre1;
 
-    nuevoSpriteArrastrable.scale.set(2);
-    nuevoSpriteArrastrable.alpha = 0.4;
-    nuevoSpriteArrastrable.tint = 0x5555ff;
+      const torre = new clase(this.input.mouse.x, this.input.mouse.y, this, dataDelBoton.id);
+      torre.esPreview = true;
+      torre.container.alpha = 0.5;
 
-    nuevoSpriteArrastrable.anchor.set(0.5, 1);
+      if (torre.rangeCircle) {
+        torre.rangeCircle.visible = true;
+      }
 
-    nuevoSpriteArrastrable.dataBoton = dataDelBoton;
+      this.arrastrandoFantasma = torre;
+      this.agregarGameObject(torre);
+    } else {
+      const nuevoSpriteArrastrable = new PIXI.Sprite(
+        this.texturas[dataDelBoton.nombreTextura],
+      );
 
-    this.arrastrandoFantasma = {
-      sprite: nuevoSpriteArrastrable,
-      dataBoton: dataDelBoton,
-    };
+      nuevoSpriteArrastrable.scale.set(2);
+      nuevoSpriteArrastrable.alpha = 0.4;
+      nuevoSpriteArrastrable.tint = 0x5555ff;
 
-    this.arrastrandoFantasma.sprite.x = this.input.mouse.x;
-    this.arrastrandoFantasma.sprite.y = this.input.mouse.y;
+      nuevoSpriteArrastrable.anchor.set(0.5, 1);
 
-    this.containerPrincipal.addChild(this.arrastrandoFantasma.sprite);
+      nuevoSpriteArrastrable.dataBoton = dataDelBoton;
+
+      this.arrastrandoFantasma = {
+        sprite: nuevoSpriteArrastrable,
+        dataBoton: dataDelBoton,
+      };
+
+      this.arrastrandoFantasma.sprite.x = this.input.mouse.x;
+      this.arrastrandoFantasma.sprite.y = this.input.mouse.y;
+
+      this.containerPrincipal.addChild(this.arrastrandoFantasma.sprite);
+    }
   }
 
   ponerExplosion(x, y) {

@@ -103,13 +103,337 @@
 
         #ui {
             width: calc(10 * 70px);
-            height: 80px;
+            height: 95px;
             background: rgba(0, 0, 0, 0.5);
             border-radius: 10px;
             position: absolute;
             bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .contenedor-botoncito {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 5px;
+        }
+
+        .contenedor-botoncito .botoncito {
+            margin: 0px;
+        }
+
+        .precio-botoncito {
+            color: #ffd700;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 4px;
+            text-shadow: 1px 1px 2px black;
+            transition: opacity 0.2s;
+        }
+
+        .botoncito:not(.activo) + .precio-botoncito {
+            opacity: 0.3;
+        }
+
+        /* ─── Pantalla de carga ───────────────────────────────────────── */
+
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            background: #09090f;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 28px;
+            z-index: 9999;
+        }
+
+        .spinner {
+            width: 58px;
+            height: 58px;
+            border: 5px solid rgba(255, 255, 255, 0.10);
+            border-top-color: #8b7fff;
+            border-radius: 50%;
+            animation: spinner-spin 0.85s linear infinite;
+        }
+
+        @keyframes spinner-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: rgba(255, 255, 255, 0.40);
+            font-size: 11px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        /* ─── Fade overlay ────────────────────────────────────────────── */
+
+        #fade-overlay {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9998;
+            transition: opacity 0.55s ease;
+        }
+
+        /* ─── Menú principal ──────────────────────────────────────────── */
+
+        #main-menu {
+            position: fixed;
+            inset: 0;
+            z-index: 9000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0d0d14;
+        }
+
+        #menu-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+
+        /* oscurecimiento degradado sobre la imagen de fondo */
+        #menu-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to bottom,
+                rgba(5, 5, 12, 0.40) 0%,
+                rgba(5, 5, 12, 0.78) 100%
+            );
+            z-index: 1;
+        }
+
+        #menu-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #menu-title {
+            max-width: 500px;
+            width: 80vw;
+            height: auto;
+            margin-bottom: 28px;
+            filter: drop-shadow(0 4px 28px rgba(0, 0, 0, 0.75));
+        }
+
+        #menu-buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+
+        /* ─── Botones compartidos (menú + opciones) ───────────────────── */
+
+        .menu-btn {
+            min-width: 220px;
+            padding: 14px 36px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+        }
+
+        .menu-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.50);
+        }
+
+        .menu-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .menu-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .menu-btn--primary {
+            background: linear-gradient(135deg, #7c6fff 0%, #5340e0 100%);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(124, 111, 255, 0.45);
+        }
+
+        .menu-btn--secondary {
+            background: rgba(255, 255, 255, 0.07);
+            color: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            backdrop-filter: blur(6px);
+        }
+
+        /* ─── Panel de opciones ───────────────────────────────────────── */
+
+        #options-panel {
+            position: fixed;
+            inset: 0;
+            z-index: 9000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(7, 7, 15, 0.97);
+            backdrop-filter: blur(14px);
+        }
+
+        .options-inner {
+            width: min(500px, 92vw);
+            padding: 44px 50px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .options-title {
+            margin: 0;
+            color: #fff;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .options-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .options-subtitle {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            padding-bottom: 10px;
+        }
+
+        /* Sliders de volumen */
+
+        .vol-group {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .vol-label {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 14px;
+            cursor: default;
+        }
+
+        .vol-label span {
+            min-width: 108px;
+        }
+
+        .vol-label input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.14);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .vol-label input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #8b7fff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(139, 127, 255, 0.55);
+            transition: transform 0.1s;
+        }
+
+        .vol-label input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+        }
+
+        .vol-label input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #8b7fff;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Grilla de controles */
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 11px 22px;
+            align-items: center;
+        }
+
+        .controls-key {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .controls-sep {
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 11px;
+            margin: 0 2px;
+        }
+
+        kbd {
+            display: inline-block;
+            padding: 3px 8px;
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 5px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.78);
+            white-space: nowrap;
+        }
+
+        .controls-desc {
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 13px;
+        }
+
+        #options-panel .menu-btn {
+            align-self: center;
+            margin-top: 6px;
         }
     </style>
 
@@ -133,7 +457,7 @@
 
 
     <script src="pixi.js"></script>
-    <script src="https://unpkg.com/@pixi/sound/dist/pixi-sound.js"></script>
+    <script src="pixi-sound.js"></script>
     <script src="clases/audioManager.js"></script>
     <script src="clases/usuario.js"></script>
     <script src="funcionQueGeneraNombres.js"></script>
@@ -161,6 +485,7 @@
     <script src="clases/oleada.js"></script>
     <script src="clases/input.js"></script>
     <script src="clases/juego.js"></script>
+    <script src="clases/menuManager.js"></script>
 
 
 
@@ -172,26 +497,85 @@
 
 <body>
 
+    <!-- ─── Pantalla de carga ──────────────────────────────────────────── -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p class="loading-text">Cargando&hellip;</p>
+    </div>
 
+    <!-- ─── Overlay de fade (negro) ───────────────────────────────────── -->
+    <div id="fade-overlay"></div>
 
+    <!-- ─── Menú principal ────────────────────────────────────────────── -->
+    <div id="main-menu" style="display:none">
+        <img id="menu-bg" src="./assets/menu/placeholderbg2.jpg" alt="">
+        <div id="menu-overlay"></div>
+        <div id="menu-content">
+            <img id="menu-title" src="./assets/menu/placeholderbg.jpg" alt="Tower Defense">
+            <div id="menu-buttons">
+                <button id="btn-jugar"    class="menu-btn menu-btn--primary">Jugar</button>
+                <button id="btn-opciones" class="menu-btn menu-btn--secondary">Opciones</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── Panel de opciones ─────────────────────────────────────────── -->
+    <div id="options-panel" style="display:none">
+        <div class="options-inner">
+            <h2 class="options-title">Opciones</h2>
+
+            <div class="options-section">
+                <h3 class="options-subtitle">Volumen</h3>
+                <div class="vol-group">
+                    <label class="vol-label">
+                        <span>General</span>
+                        <input type="range" id="vol-general" min="0" max="1" step="0.01" value="1">
+                    </label>
+                    <label class="vol-label">
+                        <span>M&uacute;sica</span>
+                        <input type="range" id="vol-musica" min="0" max="1" step="0.01" value="1">
+                    </label>
+                    <label class="vol-label">
+                        <span>Efectos (FX)</span>
+                        <input type="range" id="vol-fx" min="0" max="1" step="0.01" value="0.8">
+                    </label>
+                </div>
+            </div>
+
+            <div class="options-section">
+                <h3 class="options-subtitle">Controles</h3>
+                <div class="controls-grid">
+                    <div class="controls-key">
+                        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
+                        <span class="controls-sep">/</span>
+                        <kbd>&uarr;</kbd><kbd>&larr;</kbd><kbd>&darr;</kbd><kbd>&rarr;</kbd>
+                    </div>
+                    <div class="controls-desc">Mover c&aacute;mara</div>
+
+                    <div class="controls-key"><kbd>Rueda del mouse</kbd></div>
+                    <div class="controls-desc">Zoom</div>
+
+                    <div class="controls-key"><kbd>Clic izquierdo</kbd></div>
+                    <div class="controls-desc">Comprar / colocar</div>
+
+                    <div class="controls-key"><kbd>Clic derecho</kbd></div>
+                    <div class="controls-desc">Deseleccionar</div>
+                </div>
+            </div>
+
+            <button id="btn-volver" class="menu-btn menu-btn--secondary">Volver</button>
+        </div>
+    </div>
 
     <script>
         async function arrancar() {
             const juego = new Juego()
-
             window.juego = juego
-
             await juego.init()
 
-            const cx = MUNDO_ANCHO / 2
-            const cy = MUNDO_ALTO / 2
-
-
-
-            // await juego.spawnTorre(cx - 220, cy + 80, 1)
-            // await juego.spawnTorre(cx + 220, cy + 80, 2)
-
-
+            const menu = new MenuManager(juego)
+            window.menu = menu
+            menu.mostrarMenuPrincipal()
         }
 
         arrancar().catch((error) => {
