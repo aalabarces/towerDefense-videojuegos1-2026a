@@ -50,6 +50,12 @@ class Grilla {
     celda.insertar(entidad);
   }
 
+  remover(entidad) {
+    let celda = this.getCeldaEnPosicion(entidad.posicion.x, entidad.posicion.y);
+    if (!celda) return;
+    celda.remover(entidad);
+  }
+
   query(x, y, radioPx = ANCHO_CELDA) {
     let celda = this.getCeldaEnPosicion(x, y);
     if (!celda) return [];

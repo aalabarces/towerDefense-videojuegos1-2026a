@@ -54,6 +54,8 @@ class GameObject {
 
     this.juego.piedras = this.juego.piedras.filter((piedra) => piedra !== this);
     this.juego.balas = this.juego.balas.filter((bala) => bala !== this);
+
+    this.juego.grilla?.remover(this);
   }
 
   configurarOrigen(displayObject) {

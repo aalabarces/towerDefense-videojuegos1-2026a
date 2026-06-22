@@ -22,6 +22,9 @@ class EntidadConSalud extends GameObject {
   }
 
   morir() {
+    if (this._muerto) return;
+    this._muerto = true;
+
     this.sacameDeLosArrays();
     this.explotar();
 

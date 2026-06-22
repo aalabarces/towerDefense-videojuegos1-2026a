@@ -675,6 +675,8 @@ class Juego {
     ];
 
     for (let objeto of nuevoArrayConTodosLosObjetosEnArea) {
+      if (!objeto?.container || objeto._muerto) continue;
+
       const cuantoDaño =
         150 / distanciaCuadrada(objeto, { posicion: { x, y } });
 

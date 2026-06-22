@@ -10,6 +10,10 @@ class Celda {
     this.entidadesAca.push(entidad);
   }
 
+  remover(entidad) {
+    this.entidadesAca = this.entidadesAca.filter((e) => e !== entidad);
+  }
+
   vaciar() {
     this.entidadesAca = [];
   }
