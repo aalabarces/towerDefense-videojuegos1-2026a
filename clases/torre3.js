@@ -2,6 +2,8 @@ class Torre3 extends Torre {
   constructor(x, y, juego, tipo) {
     super(x, y, juego, tipo);
     this.tipoDeTorre = 3;
+    this.cooldown = 500;
+    this.tiempoDesdeUltimoDisparo = this.cooldown;
     this.inicializarSpritesDeTorre3(1);
     this.ajustarLineaDisparo();
   }
@@ -164,10 +166,7 @@ class Torre3 extends Torre {
       this.cambiarAnimacionPoli("disparando", dirLPC);
     }
 
-    if (this.tiempoDesdeUltimoDisparo < this.cooldown) return;
-
     this.dispararA(enemigoCercano);
-    this.tiempoDesdeUltimoDisparo = 0;
 
     super.update();
   }

@@ -317,6 +317,7 @@ class Juego {
       quienDispara.posicion.y,
       this,
       aQuien,
+      quienDispara,
     );
     this.agregarGameObject(bala);
   }
