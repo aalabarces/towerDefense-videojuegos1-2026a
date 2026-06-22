@@ -573,19 +573,23 @@ class Juego {
   }
 
   getPiedrasCerca(x, y, radio) {
-    return this.piedras.filter((obstaculo) => {
-      return (
-        distancia(x, y, obstaculo.posicion.x, obstaculo.posicion.y) < radio
-      );
+    let entidadesEnEstas9Celdas = this.grilla.query(x, y, radio);
+
+    let soloPiedras = entidadesEnEstas9Celdas.filter((entidad) => {
+      if (entidad instanceof Piedra) return true;
     });
+
+    return soloPiedras;
   }
 
   getTorresCerca(x, y, radio) {
-    return this.torres.filter((obstaculo) => {
-      return (
-        distancia(x, y, obstaculo.posicion.x, obstaculo.posicion.y) < radio
-      );
+    let entidadesEnEstas9Celdas = this.grilla.query(x, y, radio);
+
+    let soloTorres = entidadesEnEstas9Celdas.filter((entidad) => {
+      if (entidad instanceof Torre) return true;
     });
+
+    return soloTorres;
   }
 
   crearSpriteFantasma(dataDelBoton) {
