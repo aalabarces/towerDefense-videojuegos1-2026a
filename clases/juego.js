@@ -1,5 +1,6 @@
 const MUNDO_ANCHO = 3500;
 const MUNDO_ALTO = 2024;
+const ANCHO_CELDA = 100;
 const CAMARA_VELOCIDAD = 20;
 const ZOOM_MAX = 2.0;
 const ZOOM_FACTOR = 0.001;
@@ -16,6 +17,8 @@ function zoomMinimoCover() {
 class Juego {
   constructor(opciones = {}) {
     this.opciones = opciones;
+
+    this.grilla = new Grilla(MUNDO_ANCHO, MUNDO_ALTO, ANCHO_CELDA, this);
     this.colorDeFondo = opciones.background ?? "#ffff00";
 
     this.app = null;
@@ -365,7 +368,10 @@ class Juego {
         }
         this.usuario.plata -= precioCompra("torre", torre.tipoDeTorre);
         this.arrastrandoFantasma = null;
-      } else if (this.arrastrandoFantasma.dataBoton && this.arrastrandoFantasma.dataBoton.tipo == "piedra") {
+      } else if (
+        this.arrastrandoFantasma.dataBoton &&
+        this.arrastrandoFantasma.dataBoton.tipo == "piedra"
+      ) {
         this.spawnPiedra(
           this.input.mouse.x,
           this.input.mouse.y,
@@ -514,6 +520,8 @@ class Juego {
   gameloop() {
     if (this.pausado) return;
 
+    this.grilla.resetear();
+
     this.moverCamara();
     for (let gameObject of this.gameObjects) {
       gameObject.update();
@@ -551,9 +559,17 @@ class Juego {
   }
 
   getEnemigosCerca(x, y, radio) {
-    return this.enemigos.filter((enemigo) => {
-      return distancia(x, y, enemigo.posicion.x, enemigo.posicion.y) < radio;
+    // return this.enemigos.filter((enemigo) => {
+    //   return distancia(x, y, enemigo.posicion.x, enemigo.posicion.y) < radio;
+    // });
+
+    let entidadesEnEstas9Celdas = this.grilla.query(x, y, radio);
+
+    let soloEnemigos = entidadesEnEstas9Celdas.filter((entidad) => {
+      if (entidad instanceof Enemigo) return true;
     });
+
+    return soloEnemigos;
   }
 
   getPiedrasCerca(x, y, radio) {
@@ -581,7 +597,12 @@ class Juego {
       console.log(dataDelBoton.id);
       const clase = this.clasesDeTorre[dataDelBoton.id] || Torre1;
 
-      const torre = new clase(this.input.mouse.x, this.input.mouse.y, this, dataDelBoton.id);
+      const torre = new clase(
+        this.input.mouse.x,
+        this.input.mouse.y,
+        this,
+        dataDelBoton.id,
+      );
       torre.esPreview = true;
       torre.container.alpha = 0.5;
 
@@ -616,7 +637,7 @@ class Juego {
     }
   }
 
-  ponerExplosion(x, y) {
+  ponerExplosion(x, y, quienRevento) {
     const spriteAnimado = new PIXI.AnimatedSprite(
       this.assetExplosion.animations.explosion2,
     );
@@ -640,7 +661,12 @@ class Juego {
 
     spriteAnimado.play();
 
-    const enemigosEnArea = this.getEnemigosCerca(x, y, 100);
+    const enemigosEnArea = this.getEnemigosCerca(x, y, 100).filter(
+      (enemigo) => {
+        return enemigo !== quienRevento;
+      },
+    );
+
     const torresEnArea = this.getTorresCerca(x, y, 100);
     const nuevoArrayConTodosLosObjetosEnArea = [
       ...enemigosEnArea,

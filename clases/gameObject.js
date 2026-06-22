@@ -218,12 +218,17 @@ class GameObject {
     this.container.zIndex = this.posicion.y;
   }
 
+  metermeEnLaGrilla() {
+    this.juego.grilla.insertar(this);
+  }
+
   update() {
     if (!this.container) return;
     if (this.esPreview) {
       this.render();
       return;
     }
+    // this.metermeEnLaGrilla(); //esto se ejecuta en la grilla
     this.aplicarFisica();
     this.render();
   }

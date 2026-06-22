@@ -69,6 +69,6 @@ class EntidadConSalud extends GameObject {
 
   explotar() {
     this.juego.gestorDeAudio.reproducirEfecto("explosion");
-    this.juego.ponerExplosion(this.posicion.x, this.posicion.y);
+    this.juego.ponerExplosion(this.posicion.x, this.posicion.y, this);
   }
 }
