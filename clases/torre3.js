@@ -2,7 +2,7 @@ class Torre3 extends Torre {
   constructor(x, y, juego, tipo) {
     super(x, y, juego, tipo);
     this.tipoDeTorre = 3;
-    this.cooldown = 500;
+    this.cooldown = 100;
     this.tiempoDesdeUltimoDisparo = this.cooldown;
     this.inicializarSpritesDeTorre3(1);
     this.ajustarLineaDisparo();
@@ -42,9 +42,9 @@ class Torre3 extends Torre {
     const direcciones = ["up", "down", "left", "right"];
 
     const configAcciones = [
-      { accion: "idle",           loop: true,  animationSpeed: 0.12 },
-      { accion: "sacar_arma",     loop: false, animationSpeed: 0.12 }, // sacar_arma → disparando al terminar
-      { accion: "disparando",     loop: true,  animationSpeed: 0.12 }, // pose fija apuntando (1 frame en loop)
+      { accion: "idle", loop: true, animationSpeed: 0.12 },
+      { accion: "sacar_arma", loop: false, animationSpeed: 0.12 }, // sacar_arma → disparando al terminar
+      { accion: "disparando", loop: true, animationSpeed: 0.12 }, // pose fija apuntando (1 frame en loop)
       { accion: "guardando_arma", loop: false, animationSpeed: 0.12 }, // guardando_arma → idle al terminar
     ];
 
@@ -56,7 +56,9 @@ class Torre3 extends Torre {
         const frames = animations[key];
 
         if (!frames) {
-          console.warn(`Torre3: no encontré la animación "${key}" en poli.json`);
+          console.warn(
+            `Torre3: no encontré la animación "${key}" en poli.json`,
+          );
           continue;
         }
 
@@ -103,7 +105,8 @@ class Torre3 extends Torre {
       this.spritesPoliActual === spr &&
       this.accionPoliActual === accion &&
       this.direccionPoliActual === dir
-    ) return;
+    )
+      return;
 
     for (const s of this.listaDeSpritesPoli) s.visible = false;
     spr.visible = true;
@@ -143,7 +146,10 @@ class Torre3 extends Torre {
       // Si ya está guardando o en idle, no interrumpir.
       if (this.accionPoliActual === "disparando") {
         this.cambiarAnimacionPoli("guardando_arma", this.direccionPoliActual);
-      } else if (this.accionPoliActual !== "guardando_arma" && this.accionPoliActual !== "idle") {
+      } else if (
+        this.accionPoliActual !== "guardando_arma" &&
+        this.accionPoliActual !== "idle"
+      ) {
         this.cambiarAnimacionPoli("idle", this.direccionPoliActual);
       }
       return;

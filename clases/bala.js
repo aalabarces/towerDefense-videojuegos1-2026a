@@ -1,26 +1,32 @@
 class Bala extends GameObject {
-  constructor(x, y, juego, aQuien, quienDispara) {
-    super(x, y - 50, juego);
-
+  static velocidadBala = 20;
+  static vidaUtil = 60 * 5;
+  constructor(x, y, juego, quienDispara) {
+    super(quienDispara.posicion.x, quienDispara.posicion.y - 50, juego);
+    this.tiempoVida = 0;
     this.sprite = new PIXI.Sprite(juego.texturas.sombra);
     this.sprite.scale.set(0.05);
     this.container.addChild(this.sprite);
 
     juego.balas.push(this);
 
-    this.velocidadMaxima = 50;
+    this.velocidadMaxima = Bala.velocidadBala;
     this.daño = 0.05;
     this.quienDispara = quienDispara;
     this._impactada = false;
 
     this.agregarAceleracion(
-      (aQuien.posicion.x - x) * 10,
-      (aQuien.posicion.y - y) * 10,
+      (x - quienDispara.posicion.x) * 10,
+      (y - quienDispara.posicion.y) * 10,
     );
   }
 
   update() {
     if (this._impactada) return;
+    this.tiempoVida++;
+    if (this.tiempoVida > Bala.vidaUtil) {
+      this.impacatar();
+    }
     super.update();
     this.chequearColision();
   }

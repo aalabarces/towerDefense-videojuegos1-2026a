@@ -311,14 +311,8 @@ class Juego {
     return this.agregarGameObject(enemigo);
   }
 
-  emitirBala(quienDispara, aQuien) {
-    const bala = new Bala(
-      quienDispara.posicion.x,
-      quienDispara.posicion.y,
-      this,
-      aQuien,
-      quienDispara,
-    );
+  emitirBala(quienDispara, x, y) {
+    const bala = new Bala(x, y, this, quienDispara);
     this.agregarGameObject(bala);
   }
   spawnCentroUrbano(x, y) {

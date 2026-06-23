@@ -6,7 +6,7 @@ class Torre extends Estructura {
 
     this.tipo = "torre";
     this.tipoDeTorre = tipo;
-    this.cooldown = 800;
+    this.cooldown = 100;
     this.tiempoDesdeUltimoDisparo = this.cooldown;
 
     this.rangeCircle = new PIXI.Graphics();
@@ -100,10 +100,17 @@ class Torre extends Estructura {
     this.tiempoDesdeUltimoDisparo = 0;
 
     this.juego.gestorDeAudio.reproducirEfecto("disparo");
-    this.juego.emitirBala(this, enemigo);
 
-    const dx = enemigo.posicion.x - this.posicion.x;
-    const dy = enemigo.posicion.y - 30 - this.posicion.y - this.lineaDisparo.y;
+    const posFuturaDelEnemigo = {
+      x: enemigo.posicion.x + enemigo.velocidad.x * 60,
+      y: enemigo.posicion.y + enemigo.velocidad.y * 60,
+    };
+
+    this.juego.emitirBala(this, posFuturaDelEnemigo.x, posFuturaDelEnemigo.y);
+
+    const dx = posFuturaDelEnemigo.x - this.posicion.x;
+    const dy =
+      posFuturaDelEnemigo.y - 30 - this.posicion.y - this.lineaDisparo.y;
     this.lineaDisparo.height = Math.hypot(dx, dy);
     this.lineaDisparo.rotation = Math.atan2(-dx, dy);
     this.lineaDisparo.visible = true;
