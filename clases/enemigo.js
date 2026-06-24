@@ -385,9 +385,15 @@ class Enemigo extends EntidadConSalud {
       cuantoMirarAlrededor,
     );
 
+    const arbolesCerca = this.juego.getArbolesCerca(
+      miPosFutura.x,
+      miPosFutura.y,
+      cuantoMirarAlrededor,
+    );
     const nuevoArrayConTodosLosObstaculosCerca = [
       ...piedrasCerca,
       ...torresCerca,
+      ...arbolesCerca,
     ];
 
     if (nuevoArrayConTodosLosObstaculosCerca.length === 0) return;

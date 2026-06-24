@@ -38,6 +38,7 @@ class Juego {
     this.personas = [];
     this.casitas = [];
     this.balas = [];
+    this.arboles = [];
 
     this.pixiInicializado = false;
     this.input = new Input(this);
@@ -279,6 +280,7 @@ class Juego {
       torre3_tapa: "assets/torre3/tapa.png",
       bg: "assets/fondo.jpg",
       sombra: "assets/sombra.png",
+      arbol1: "assets/arbol1.png",
     };
 
     const entradas = Object.entries(imagenes);
@@ -565,6 +567,16 @@ class Juego {
     });
 
     return soloEnemigos;
+  }
+
+  getArbolesCerca(x, y, radio) {
+    let entidadesEnEstas9Celdas = this.grilla.query(x, y, radio);
+
+    let soloArboles = entidadesEnEstas9Celdas.filter((entidad) => {
+      if (entidad instanceof Arbol) return true;
+    });
+
+    return soloArboles;
   }
 
   getPiedrasCerca(x, y, radio) {

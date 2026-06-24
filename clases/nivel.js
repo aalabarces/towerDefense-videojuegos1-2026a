@@ -34,8 +34,15 @@ class Nivel {
       this.posicionCentroUrbano.x,
       this.posicionCentroUrbano.y,
     );
+    this.agregarArbolesSegunJSON(dataNivel1.arboles);
 
     this.dibujarDebugNodos();
+  }
+
+  agregarArbolesSegunJSON(arboles) {
+    for (let arbol of arboles) {
+      this.crearArbol(arbol.x, arbol.y);
+    }
   }
 
   dibujarDebugNodos() {
@@ -70,6 +77,10 @@ class Nivel {
         tipo,
       },
     );
+  }
+
+  crearArbol(x, y) {
+    new Arbol(x, y, this.juego);
   }
 
   spawnOleada() {
