@@ -171,6 +171,8 @@ class Juego {
       height: MUNDO_ALTO,
     });
     this.decalSprite = new PIXI.Sprite(this.decalTexture);
+    this.decalSprite.alpha = 0.9;
+    this.decalSprite.blendMode = "multiply";
     this.decalSprite.zIndex = 0;
     this.containerPrincipal.addChild(this.decalSprite);
   }
@@ -292,6 +294,7 @@ class Juego {
       bg: "assets/fondo.jpg",
       sombra: "assets/sombra.png",
       arbol1: "assets/arbol1.png",
+      explosionDecal: "assets/explosion_decal.png",
     };
 
     const entradas = Object.entries(imagenes);
@@ -311,28 +314,44 @@ class Juego {
     return gameObject;
   }
 
-  estamparDecal(enemigo) {
-    if (!this.decalTexture || !enemigo.spriteSplat || Math.random() > 0.5)
-      return;
-    const frames = this.assetsSplat.animations.splat;
-    const frame = frames[Math.floor(Math.random() * frames.length)];
-    const s = new PIXI.Sprite(frame);
+  estamparTextura(
+    textura,
+    x,
+    y,
+    { escala = 1, rotacion = 0, alpha = 0.55 } = {},
+  ) {
+    if (!this.decalTexture) return;
+    const s = new PIXI.Sprite(textura);
     s.anchor.set(0.5, 0.5);
-    s.x = enemigo.posicion.x + enemigo.spriteSplat.x;
-    s.y = enemigo.posicion.y + enemigo.spriteSplat.y;
-    const atenuadorDeEscala = Math.random() * 0.5 + 0.5;
-    s.scale.set(
-      enemigo.spriteSplat.scale.x * atenuadorDeEscala,
-      enemigo.spriteSplat.scale.y * atenuadorDeEscala,
-    );
-    s.rotation = enemigo.spriteSplat.rotation;
-    s.alpha = Math.random() * 0.5 + 0.5;
+    s.x = x;
+    s.y = y;
+    s.scale.set(escala);
+    s.rotation = rotacion;
+    s.alpha = alpha;
     this.app.renderer.render({
       container: s,
       target: this.decalTexture,
       clear: false,
     });
     s.destroy();
+  }
+
+  estamparSangre(enemigo) {
+    if (!this.decalTexture || !enemigo.spriteSplat || Math.random() > 0.5)
+      return;
+    const frames = this.assetsSplat.animations.splat;
+    const frame = frames[Math.floor(Math.random() * frames.length)];
+    const atenuadorDeEscala = Math.random() * 0.5 + 0.5;
+    this.estamparTextura(
+      frame,
+      enemigo.posicion.x + enemigo.spriteSplat.x,
+      enemigo.posicion.y + enemigo.spriteSplat.y,
+      {
+        escala: enemigo.spriteSplat.scale.x * atenuadorDeEscala,
+        rotacion: enemigo.spriteSplat.rotation,
+        alpha: Math.random() * 0.5 + 0.5,
+      },
+    );
   }
 
   spawnEnemigo(x, y, opciones = {}) {
@@ -706,6 +725,12 @@ class Juego {
     this.containerPrincipal.addChild(spriteAnimado);
 
     spriteAnimado.play();
+
+    this.estamparTextura(this.texturas.explosionDecal, x, y, {
+      escala: Math.random() * 0.3 + 0.2,
+      rotacion: Math.random() * Math.PI * 2,
+      alpha: Math.random() * 0.3 + 0.4,
+    });
 
     const enemigosEnArea = this.getEnemigosCerca(x, y, 100).filter(
       (enemigo) => {

@@ -274,7 +274,7 @@ class Enemigo extends EntidadConSalud {
     );
     this.spriteSplat.gotoAndPlay(0);
 
-    this.juego.estamparDecal(this);
+    this.juego.estamparSangre(this);
   }
 
   recibirDaño(cuanto) {
