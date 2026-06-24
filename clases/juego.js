@@ -81,6 +81,7 @@ class Juego {
     await this.cargarAssets();
 
     this.crearContainerPrincipal();
+    this.crearCapaDecals();
     // this.agregarFondoDelMundo();
     // this.spawnCentroUrbano();
     this.nivel = new Nivel(this);
@@ -162,6 +163,16 @@ class Juego {
       (window.innerHeight - MUNDO_ALTO) / 2,
     );
     this.app.stage.addChild(this.containerPrincipal);
+  }
+
+  crearCapaDecals() {
+    this.decalTexture = PIXI.RenderTexture.create({
+      width: MUNDO_ANCHO,
+      height: MUNDO_ALTO,
+    });
+    this.decalSprite = new PIXI.Sprite(this.decalTexture);
+    this.decalSprite.zIndex = 0;
+    this.containerPrincipal.addChild(this.decalSprite);
   }
 
   /**
@@ -298,6 +309,30 @@ class Juego {
     gameObject.render();
 
     return gameObject;
+  }
+
+  estamparDecal(enemigo) {
+    if (!this.decalTexture || !enemigo.spriteSplat || Math.random() > 0.5)
+      return;
+    const frames = this.assetsSplat.animations.splat;
+    const frame = frames[Math.floor(Math.random() * frames.length)];
+    const s = new PIXI.Sprite(frame);
+    s.anchor.set(0.5, 0.5);
+    s.x = enemigo.posicion.x + enemigo.spriteSplat.x;
+    s.y = enemigo.posicion.y + enemigo.spriteSplat.y;
+    const atenuadorDeEscala = Math.random() * 0.5 + 0.5;
+    s.scale.set(
+      enemigo.spriteSplat.scale.x * atenuadorDeEscala,
+      enemigo.spriteSplat.scale.y * atenuadorDeEscala,
+    );
+    s.rotation = enemigo.spriteSplat.rotation;
+    s.alpha = Math.random() * 0.5 + 0.5;
+    this.app.renderer.render({
+      container: s,
+      target: this.decalTexture,
+      clear: false,
+    });
+    s.destroy();
   }
 
   spawnEnemigo(x, y, opciones = {}) {

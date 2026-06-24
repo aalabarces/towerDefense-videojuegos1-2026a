@@ -273,6 +273,8 @@ class Enemigo extends EntidadConSalud {
       scale * Math.random() * 0.5 + 0.75,
     );
     this.spriteSplat.gotoAndPlay(0);
+
+    this.juego.estamparDecal(this);
   }
 
   recibirDaño(cuanto) {
