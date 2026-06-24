@@ -5,7 +5,7 @@ class Piedra extends Estructura {
 
     this.tipo = "piedra";
     this.tipoDePiedra = tipo;
-    this.inicializarSprite(juego.texturas[`rock${tipo}`], 2);
+    this.inicializarSprite(juego.texturas[`rock${tipo}`], 1);
 
     juego.piedras.push(this);
   }

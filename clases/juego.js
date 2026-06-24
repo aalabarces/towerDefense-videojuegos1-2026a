@@ -677,6 +677,28 @@ class Juego {
 
       this.arrastrandoFantasma = torre;
       this.agregarGameObject(torre);
+    } else if (dataDelBoton.tipo === "piedra") {
+      const nuevoSpriteArrastrable = new PIXI.Sprite(
+        this.texturas[`rock${dataDelBoton.id}`],
+      );
+
+      nuevoSpriteArrastrable.scale.set(1);
+      nuevoSpriteArrastrable.alpha = 0.4;
+      nuevoSpriteArrastrable.tint = 0x5555ff;
+
+      nuevoSpriteArrastrable.anchor.set(0.5, 1);
+
+      nuevoSpriteArrastrable.dataBoton = dataDelBoton;
+
+      this.arrastrandoFantasma = {
+        sprite: nuevoSpriteArrastrable,
+        dataBoton: dataDelBoton,
+      };
+
+      this.arrastrandoFantasma.sprite.x = this.input.mouse.x;
+      this.arrastrandoFantasma.sprite.y = this.input.mouse.y;
+
+      this.containerPrincipal.addChild(this.arrastrandoFantasma.sprite);
     } else {
       const nuevoSpriteArrastrable = new PIXI.Sprite(
         this.texturas[dataDelBoton.nombreTextura],
