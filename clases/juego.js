@@ -6,6 +6,7 @@ const ZOOM_MAX = 2.0;
 const ZOOM_FACTOR = 0.001;
 const BASE_FRAME_MS = 1000 / 60;
 const DELTA_TIME_MAX_MS = 1000;
+const CLASES_DE_TORRE = [Torre1, Torre2, Torre3];
 
 /** Equivale a background-size: cover: el mundo tapa siempre el viewport (sin bandas por ratio). */
 function zoomMinimoCover() {
@@ -53,10 +54,10 @@ class Juego {
 
     this.gestorDeAudio = new GestorDeAudio(this);
 
-    this.clasesDeTorre = [Torre1, Torre2, Torre3].reduce((acc, clase) => {
-      acc[clase.tipoDeTorre] = clase;
-      return acc;
-    }, {});
+    this.clasesDeTorre = [];
+    CLASES_DE_TORRE.forEach((clase, index) => {
+      this.clasesDeTorre[index + 1] = clase;
+    });
   }
 
   sumarPlata(cuanto) {
@@ -683,6 +684,20 @@ class Juego {
       objeto.recibirDaño(cuantoDaño);
     }
   }
+
+  guardarPartida() {
+    let save = {}
+    for (let gameObject of this.gameObjects) {
+      save[gameObject.id] = gameObject.serializar();
+    }
+    localStorage.setItem("juegoSave", JSON.stringify(save));
+  }
+
+  cargarPartida() {
+    let saveData = JSON.parse(localStorage.getItem("juegoSave"));
+    console.log("cargando partida", saveData);
+  }
+
 }
 
 window.Juego = Juego;

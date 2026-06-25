@@ -234,6 +234,25 @@ class GameObject {
     this.aplicarFisica();
     this.render();
   }
+
+  serializar() {
+    return {
+      id: this.id,
+      x: this.posicion.x,
+      y: this.posicion.y,
+      velocidad: { ...this.velocidad },
+      aceleracion: { ...this.aceleracion },
+      velocidadLineal: this.velocidadLineal,
+    }
+  }
+
+  onMouseOver() {
+    // console.log("mouse over", this.constructor.name, this.id);
+  }
+
+  onMouseOut() {
+    // console.log("mouse out", this.constructor.name, this.id);
+  }
 }
 
 // window.GameObject = GameObject;

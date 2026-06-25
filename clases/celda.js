@@ -43,4 +43,19 @@ class Celda {
     entidades.push(...this.entidadesAca);
     return entidades;
   }
+
+  getObjetoEnPosicion(x, y) {
+    // TODO: que de prioridad a torres en vez de devolver el primero
+    for (let i = 0; i < this.entidadesAca.length; i++) {
+      let entidad = this.entidadesAca[i];
+      console.log("checking entidad", entidad.constructor.name, entidad.id, "at", entidad.posicion.x, entidad.posicion.y);
+      if (entidad.sprite) {
+        let bounds = entidad.sprite.getBounds();
+        if (x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height) {
+          return entidad;
+        }
+      }
+    }
+    return null;
+  }
 }

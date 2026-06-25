@@ -9,11 +9,7 @@ class Torre extends Estructura {
     this.cooldown = 100;
     this.tiempoDesdeUltimoDisparo = this.cooldown;
 
-    this.rangeCircle = new PIXI.Graphics();
-    this.rangeCircle.beginFill(0xff0000, 0.15);
-    this.rangeCircle.lineStyle(2, 0xff0000, 0.4);
-    this.rangeCircle.drawCircle(0, 0, this.radioDeVision);
-    this.rangeCircle.endFill();
+    this.rangeCircle = this.crearCirculoDeRango(this.radioDeVision);
     this.rangeCircle.visible = juego.debugMode;
     this.container.addChild(this.rangeCircle);
 
@@ -43,6 +39,15 @@ class Torre extends Estructura {
         animationSpeed: 0,
       });
     }
+  }
+
+  crearCirculoDeRango(radio) {
+    const rangeCircle = new PIXI.Graphics();
+    rangeCircle.beginFill(0xff0000, 0.15);
+    rangeCircle.lineStyle(2, 0xff0000, 0.4);
+    rangeCircle.drawCircle(0, 0, radio);
+    rangeCircle.endFill();
+    return rangeCircle;
   }
 
   ajustarLineaDisparo() {
@@ -121,6 +126,16 @@ class Torre extends Estructura {
       this.sprite.tint = 0xffffff;
       this.lineaDisparo.visible = false;
     }, 30);
+  }
+
+  onMouseOver() {
+    console.log("mouse over torre", this.posicion.x, this.posicion.y);
+    this.rangeCircle.visible = true;
+  }
+
+  onMouseOut() {
+    console.log("mouse out torre", this.posicion.x, this.posicion.y);
+    this.rangeCircle.visible = false;
   }
 }
 

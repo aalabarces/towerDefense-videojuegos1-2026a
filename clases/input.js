@@ -4,6 +4,7 @@ class Input {
     this.teclas = {};
     this.teclasPresionadas = {};
     this.mouse = { x: 0, y: 0 };
+    this.objetoSeleccionado = null;
     window.addEventListener("keydown", this.onKeyDown.bind(this));
     window.addEventListener("keyup", this.onKeyUp.bind(this));
 
@@ -40,8 +41,18 @@ class Input {
         this.juego.arrastrandoFantasma.sprite.zIndex = this.mouse.y;
       }
     }
-
-    // this.spawnEnemigo(mundoX, mundoY);
+    
+    if (this.juego.pausado) return;
+    console.log(this.juego.grilla.getCeldaEnPosicion(this.mouse.x, this.mouse.y))
+    console.log(this.juego.grilla.getCeldaEnPosicion(this.mouse.x, this.mouse.y)?.getObjetoEnPosicion(this.mouse.x, this.mouse.y))
+    const nuevoSeleccionado = this.juego.grilla.getCeldaEnPosicion(this.mouse.x, this.mouse.y)?.getObjetoEnPosicion(this.mouse.x, this.mouse.y);
+    console.log("nuevoSeleccionado", nuevoSeleccionado?.constructor.name, nuevoSeleccionado?.id);
+    if (nuevoSeleccionado !== this.objetoSeleccionado) {
+      this.objetoSeleccionado?.onMouseOut();
+      nuevoSeleccionado?.onMouseOver();
+      this.objetoSeleccionado = nuevoSeleccionado;
+    }
+    
   }
 
   onKeyUp(event) {
@@ -51,7 +62,7 @@ class Input {
   }
 
   update() {
-    // limpiar al final del frame
+    // pausar/reanudar
     if (this.fuePresionada("escape")) {
       if (this.juego.pausado) {
         console.log("reanudar juego");
@@ -61,9 +72,11 @@ class Input {
         this.juego.pausa();
       }
     }
+    // debug
     if (this.estaApretada("shift") && this.fuePresionada("d")) {
       this.juego.toggleDebug();
     }
+    // limpiar al final del frame
     this.teclasPresionadas = {};
   }
 
@@ -75,4 +88,5 @@ class Input {
   fuePresionada(key) {
     return !!this.teclasPresionadas[key];
   }
+
 }
