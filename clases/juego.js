@@ -39,6 +39,7 @@ class Juego {
     this.personas = [];
     this.casitas = [];
     this.balas = [];
+    this.arboles = [];
 
     this.pixiInicializado = false;
     this.input = new Input(this);
@@ -81,6 +82,7 @@ class Juego {
     await this.cargarAssets();
 
     this.crearContainerPrincipal();
+    this.crearCapaDecals();
     // this.agregarFondoDelMundo();
     // this.spawnCentroUrbano();
     this.nivel = new Nivel(this);
@@ -162,6 +164,18 @@ class Juego {
       (window.innerHeight - MUNDO_ALTO) / 2,
     );
     this.app.stage.addChild(this.containerPrincipal);
+  }
+
+  crearCapaDecals() {
+    this.decalTexture = PIXI.RenderTexture.create({
+      width: MUNDO_ANCHO,
+      height: MUNDO_ALTO,
+    });
+    this.decalSprite = new PIXI.Sprite(this.decalTexture);
+    this.decalSprite.alpha = 0.9;
+    this.decalSprite.blendMode = "multiply";
+    this.decalSprite.zIndex = 0;
+    this.containerPrincipal.addChild(this.decalSprite);
   }
 
   /**
@@ -280,6 +294,8 @@ class Juego {
       torre3_tapa: "assets/torre3/tapa.png",
       bg: "assets/fondo.jpg",
       sombra: "assets/sombra.png",
+      arbol1: "assets/arbol1.png",
+      explosionDecal: "assets/explosion_decal.png",
     };
 
     const entradas = Object.entries(imagenes);
@@ -297,6 +313,46 @@ class Juego {
     gameObject.render();
 
     return gameObject;
+  }
+
+  estamparTextura(
+    textura,
+    x,
+    y,
+    { escala = 1, rotacion = 0, alpha = 0.55 } = {},
+  ) {
+    if (!this.decalTexture) return;
+    const s = new PIXI.Sprite(textura);
+    s.anchor.set(0.5, 0.5);
+    s.x = x;
+    s.y = y;
+    s.scale.set(escala);
+    s.rotation = rotacion;
+    s.alpha = alpha;
+    this.app.renderer.render({
+      container: s,
+      target: this.decalTexture,
+      clear: false,
+    });
+    s.destroy();
+  }
+
+  estamparSangre(enemigo) {
+    if (!this.decalTexture || !enemigo.spriteSplat || Math.random() > 0.5)
+      return;
+    const frames = this.assetsSplat.animations.splat;
+    const frame = frames[Math.floor(Math.random() * frames.length)];
+    const atenuadorDeEscala = Math.random() * 0.5 + 0.5;
+    this.estamparTextura(
+      frame,
+      enemigo.posicion.x + enemigo.spriteSplat.x,
+      enemigo.posicion.y + enemigo.spriteSplat.y,
+      {
+        escala: enemigo.spriteSplat.scale.x * atenuadorDeEscala,
+        rotacion: enemigo.spriteSplat.rotation,
+        alpha: Math.random() * 0.5 + 0.5,
+      },
+    );
   }
 
   spawnEnemigo(x, y, opciones = {}) {
@@ -568,6 +624,16 @@ class Juego {
     return soloEnemigos;
   }
 
+  getArbolesCerca(x, y, radio) {
+    let entidadesEnEstas9Celdas = this.grilla.query(x, y, radio);
+
+    let soloArboles = entidadesEnEstas9Celdas.filter((entidad) => {
+      if (entidad instanceof Arbol) return true;
+    });
+
+    return soloArboles;
+  }
+
   getPiedrasCerca(x, y, radio) {
     let entidadesEnEstas9Celdas = this.grilla.query(x, y, radio);
 
@@ -612,6 +678,28 @@ class Juego {
 
       this.arrastrandoFantasma = torre;
       this.agregarGameObject(torre);
+    } else if (dataDelBoton.tipo === "piedra") {
+      const nuevoSpriteArrastrable = new PIXI.Sprite(
+        this.texturas[`rock${dataDelBoton.id}`],
+      );
+
+      nuevoSpriteArrastrable.scale.set(1);
+      nuevoSpriteArrastrable.alpha = 0.4;
+      nuevoSpriteArrastrable.tint = 0x5555ff;
+
+      nuevoSpriteArrastrable.anchor.set(0.5, 1);
+
+      nuevoSpriteArrastrable.dataBoton = dataDelBoton;
+
+      this.arrastrandoFantasma = {
+        sprite: nuevoSpriteArrastrable,
+        dataBoton: dataDelBoton,
+      };
+
+      this.arrastrandoFantasma.sprite.x = this.input.mouse.x;
+      this.arrastrandoFantasma.sprite.y = this.input.mouse.y;
+
+      this.containerPrincipal.addChild(this.arrastrandoFantasma.sprite);
     } else {
       const nuevoSpriteArrastrable = new PIXI.Sprite(
         this.texturas[dataDelBoton.nombreTextura],
@@ -660,6 +748,12 @@ class Juego {
     this.containerPrincipal.addChild(spriteAnimado);
 
     spriteAnimado.play();
+
+    this.estamparTextura(this.texturas.explosionDecal, x, y, {
+      escala: Math.random() * 0.3 + 0.2,
+      rotacion: Math.random() * Math.PI * 2,
+      alpha: Math.random() * 0.3 + 0.4,
+    });
 
     const enemigosEnArea = this.getEnemigosCerca(x, y, 100).filter(
       (enemigo) => {

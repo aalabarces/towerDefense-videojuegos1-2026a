@@ -7,7 +7,7 @@ class Input {
     this.objetoSeleccionado = null;
     window.addEventListener("keydown", this.onKeyDown.bind(this));
     window.addEventListener("keyup", this.onKeyUp.bind(this));
-
+    window.addEventListener("mousedown", this.onMouseDown.bind(this));
     window.addEventListener("mousemove", this.onMouseMove.bind(this));
   }
 
@@ -21,6 +21,10 @@ class Input {
     }
 
     this.teclas[key] = true;
+  }
+
+  onMouseDown(event) {
+    // this.juego.nivel.crearArbol(this.mouse.x, this.mouse.y);
   }
 
   onMouseMove(event) {

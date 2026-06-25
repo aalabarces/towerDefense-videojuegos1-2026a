@@ -289,6 +289,8 @@ class Enemigo extends EntidadConSalud {
       scale * Math.random() * 0.5 + 0.75,
     );
     this.spriteSplat.gotoAndPlay(0);
+
+    this.juego.estamparSangre(this);
   }
 
   recibirDaño(cuanto) {
@@ -422,9 +424,15 @@ class Enemigo extends EntidadConSalud {
       cuantoMirarAlrededor,
     );
 
+    const arbolesCerca = this.juego.getArbolesCerca(
+      miPosFutura.x,
+      miPosFutura.y,
+      cuantoMirarAlrededor,
+    );
     const nuevoArrayConTodosLosObstaculosCerca = [
       ...piedrasCerca,
       ...torresCerca,
+      ...arbolesCerca,
     ];
 
     if (nuevoArrayConTodosLosObstaculosCerca.length === 0) return;

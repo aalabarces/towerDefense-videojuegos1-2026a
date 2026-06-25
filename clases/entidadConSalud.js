@@ -48,10 +48,12 @@ class EntidadConSalud extends GameObject {
     this.barraVidaContainer.y =
       -this.sprite.height - EntidadConSalud.OFFSET_BARRA_VIDA;
     this.barraVidaContainer.visible = this.mostrarVida;
+    this.barraVidaContainer.visible = false;
   }
 
   actualizarBarraDeVida() {
     const porcentaje = Math.max(0, this.vida / this.vidaMax);
+    this.barraVidaContainer.visible = this.mostrarVida && porcentaje < 1;
     this.barraVida.clear();
     this.barraVida.rect(-25, -5, 50 * porcentaje, 6);
     const color =
