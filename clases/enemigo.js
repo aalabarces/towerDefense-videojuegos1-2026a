@@ -49,6 +49,7 @@ class Enemigo extends EntidadConSalud {
     this.cambiarAnimacion("idle", this.direccion);
 
     this.crearSombra();
+    this.crearGlow();
     this.crearFSMparaComportamientos();
     this.crearFSMparaAnimacion();
 
@@ -62,6 +63,21 @@ class Enemigo extends EntidadConSalud {
     this.sombra.zIndex = -1;
     this.sombra.alpha = 0.5;
     this.container.addChild(this.sombra);
+  }
+
+  crearGlow() {
+    this.glow = new PIXI.Graphics();
+    this.glow.beginFill(0xff3366, 0.5);
+    this.glow.drawEllipse(0, 0, 16, 8);
+    this.glow.endFill();
+    this.glow.zIndex = -0.5;
+    this.glow.visible = false;
+
+    const blur = new PIXI.BlurFilter();
+    blur.strength = 8;
+    this.glow.filters = [blur];
+
+    this.container.addChild(this.glow);
   }
 
   asignarTarget(obj) {
@@ -338,6 +354,27 @@ class Enemigo extends EntidadConSalud {
 
     this.behaviorFSM.update();
     super.update();
+
+    if (this.glow && this.glow.visible) {
+      const time = Date.now() / 200;
+      this.glow.alpha = 0.5 + Math.sin(time) * 0.2;
+      const scale = 1.0 + Math.sin(time) * 0.1;
+      this.glow.scale.set(scale);
+    }
+  }
+
+  onMouseOver() {
+    super.onMouseOver();
+    if (this.glow) {
+      // this.glow.visible = true;
+    }
+  }
+
+  onMouseOut() {
+    super.onMouseOut();
+    if (this.glow) {
+      // this.glow.visible = false;
+    }
   }
 
   siEstoyCercaDelCentroUrbanoMorir() {

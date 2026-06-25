@@ -45,13 +45,33 @@ class Celda {
   }
 
   getObjetoEnPosicion(x, y) {
-    // TODO: que de prioridad a torres en vez de devolver el primero
-    for (let i = 0; i < this.entidadesAca.length; i++) {
-      let entidad = this.entidadesAca[i];
-      console.log("checking entidad", entidad.constructor.name, entidad.id, "at", entidad.posicion.x, entidad.posicion.y);
+    // Query this cell and its neighbors (up to 2 cells away) to find any overlapping sprites
+    const entidades = this.getEntidadesAcaYEnCeldasVecinas(2);
+
+    // Prioritize towers and structures
+    entidades.sort((a, b) => {
+      const aIsTorre = a instanceof Torre;
+      const bIsTorre = b instanceof Torre;
+      if (aIsTorre && !bIsTorre) return -1;
+      if (!aIsTorre && bIsTorre) return 1;
+      return 0;
+    });
+
+    for (let i = 0; i < entidades.length; i++) {
+      let entidad = entidades[i];
       if (entidad.sprite) {
-        let bounds = entidad.sprite.getBounds();
-        if (x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height) {
+        const sprite = entidad.sprite;
+        const width = sprite.texture.width * sprite.scale.x;
+        const height = sprite.texture.height * sprite.scale.y;
+        const anchorX = sprite.anchor ? sprite.anchor.x : 0;
+        const anchorY = sprite.anchor ? sprite.anchor.y : 0;
+
+        const left = entidad.posicion.x - anchorX * width;
+        const right = entidad.posicion.x + (1 - anchorX) * width;
+        const top = entidad.posicion.y - anchorY * height;
+        const bottom = entidad.posicion.y + (1 - anchorY) * height;
+
+        if (x >= left && x <= right && y >= top && y <= bottom) {
           return entidad;
         }
       }
