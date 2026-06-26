@@ -23,7 +23,7 @@ class Input {
   }
 
   onMouseDown(event) {
-    // this.juego.nivel.crearArbol(this.mouse.x, this.mouse.y);
+    // this.juego.nivel.crearPiedra(this.mouse.x, this.mouse.y);
   }
 
   onMouseMove(event) {

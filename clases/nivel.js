@@ -35,13 +35,19 @@ class Nivel {
       this.posicionCentroUrbano.y,
     );
     this.agregarArbolesSegunJSON(dataNivel1.arboles);
-
+    this.ponerPiedrasSegunJSON(dataNivel1.piedras);
     this.dibujarDebugNodos();
   }
 
   agregarArbolesSegunJSON(arboles) {
     for (let arbol of arboles) {
       this.crearArbol(arbol.x, arbol.y);
+    }
+  }
+
+  ponerPiedrasSegunJSON(piedras) {
+    for (let piedra of piedras) {
+      this.crearPiedra(piedra.x, piedra.y);
     }
   }
 
@@ -77,6 +83,9 @@ class Nivel {
         tipo,
       },
     );
+  }
+  crearPiedra(x, y) {
+    this.juego.spawnPiedra(x, y, Math.floor(Math.random() * 4) + 1);
   }
 
   crearArbol(x, y) {

@@ -63,7 +63,17 @@ class GameObject {
       displayObject.anchor.set(0.5, 1);
     }
   }
+  crearSombra(ancho) {
+    this.sombra = new PIXI.Sprite(this.juego.texturas.sombra);
 
+    this.sombra.anchor.set(0.5, 0.5);
+    if (!ancho) this.sombra.scale.set(0.1);
+    else this.sombra.width = ancho;
+    this.sombra.scale.y = this.sombra.scale.x;
+    this.sombra.zIndex = -1;
+    this.sombra.alpha = 0.33;
+    this.container.addChild(this.sombra);
+  }
   //////////
   // FÍSICAS
   //////////

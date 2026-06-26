@@ -55,15 +55,6 @@ class Enemigo extends EntidadConSalud {
     this.render();
   }
 
-  crearSombra() {
-    this.sombra = new PIXI.Sprite(this.juego.texturas.sombra);
-    this.sombra.anchor.set(0.5, 0.5);
-    this.sombra.scale.set(0.1);
-    this.sombra.zIndex = -1;
-    this.sombra.alpha = 0.5;
-    this.container.addChild(this.sombra);
-  }
-
   asignarTarget(obj) {
     this.objTarget = obj;
     this.targetX = obj.x;
@@ -278,6 +269,7 @@ class Enemigo extends EntidadConSalud {
   }
 
   recibirDaño(cuanto) {
+    if (cuanto > 1) cuanto = 1;
     super.recibirDaño(cuanto);
 
     this.mostrarSplat(cuanto);

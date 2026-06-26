@@ -1,5 +1,5 @@
 const MUNDO_ANCHO = 3500;
-const MUNDO_ALTO = 2024;
+const MUNDO_ALTO = 2350;
 const ANCHO_CELDA = 100;
 const CAMARA_VELOCIDAD = 20;
 const ZOOM_MAX = 2.0;
@@ -294,6 +294,9 @@ class Juego {
       bg: "assets/fondo.jpg",
       sombra: "assets/sombra.png",
       arbol1: "assets/arbol1.png",
+      arbol2: "assets/arbol2.png",
+      arbol3: "assets/arbol3.png",
+      arbol4: "assets/arbol4.png",
       explosionDecal: "assets/explosion_decal.png",
     };
 
