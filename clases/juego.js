@@ -416,14 +416,7 @@ class Juego {
     // console.log("on click", event);
     if (this.arrastrandoFantasma) {
       if (this.arrastrandoFantasma.esPreview) {
-        const torre = this.arrastrandoFantasma;
-        torre.esPreview = false;
-        torre.container.alpha = 1.0;
-        if (torre.rangeCircle) {
-          torre.rangeCircle.visible = this.debugMode;
-        }
-        this.usuario.plata -= precioCompra("torre", torre.tipoDeTorre);
-        this.arrastrandoFantasma = null;
+        this.ponerTorre(event)
       } else if (
         this.arrastrandoFantasma.dataBoton &&
         this.arrastrandoFantasma.dataBoton.tipo == "piedra"
@@ -436,6 +429,20 @@ class Juego {
         this.quitarFantasma();
       }
     }
+  }
+
+  ponerTorre(event) {
+    if (!this.arrastrandoFantasma) return;
+    if (!this.arrastrandoFantasma.esPreview) return;
+    const torre = this.arrastrandoFantasma;
+    torre.esPreview = false;
+    torre.container.alpha = 1.0;
+    if (torre.rangeCircle) {
+      torre.rangeCircle.visible = this.debugMode;
+    }
+    this.usuario.plata -= precioCompra("torre", torre.tipoDeTorre);
+    this.arrastrandoFantasma = null;
+    this.gestorDeAudio.reproducir("colocarTorre", "Efectos");
   }
 
   onWheel(event) {

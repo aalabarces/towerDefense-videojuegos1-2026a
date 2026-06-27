@@ -18,6 +18,8 @@ class MenuManager {
     // Cargar volúmenes guardados si existen
     this._cargarVolumenes();
 
+    this.sliderDebounceTimeout = null;
+
     // Referencias al DOM
     this.elLoadingScreen = document.getElementById('loading-screen');
     this.elMainMenu      = document.getElementById('main-menu');
@@ -98,24 +100,37 @@ class MenuManager {
 
     this.sliderGeneral.addEventListener('input', () => {
       this.volMaster = parseFloat(this.sliderGeneral.value);
+      this._reproducirSliderConDebounce();
       this._aplicarVolumenes();
     });
 
     this.sliderMusica.addEventListener('input', () => {
       this.volMusicaBase = parseFloat(this.sliderMusica.value);
+      this._reproducirSliderConDebounce();
       this._aplicarVolumenes();
     });
 
     this.sliderFx.addEventListener('input', () => {
       this.volFxBase = parseFloat(this.sliderFx.value);
+      this._reproducirSliderConDebounce();
       this._aplicarVolumenes();
     });
 
     if (this.btnReanudar) {
       this.btnReanudar.addEventListener('click', () => {
+      this.juego.gestorDeAudio.reproducir("click", "Interfaz");
         this.juego.reanudar();
       });
     }
+  }
+
+  _reproducirSliderConDebounce() {
+    if (this.sliderDebounceTimeout) {
+      clearTimeout(this.sliderDebounceTimeout);
+    }
+    this.sliderDebounceTimeout = setTimeout(() => {
+      this.juego.gestorDeAudio.reproducir("slider", "Interfaz");
+    }, 150);
   }
 
   _mostrar(el) { el.style.display = 'flex'; }
@@ -136,17 +151,24 @@ class MenuManager {
   }
 
   _onOpciones() {
+    // Reproducir sonido de click
+    this.juego.gestorDeAudio.reproducir("click", "Interfaz");
     this.prepararModoOpciones();
     this._ocultar(this.elMainMenu);
     this._mostrar(this.elOptionsPanel);
   }
 
   _onVolver() {
+    // Reproducir sonido de click
+    this.juego.gestorDeAudio.reproducir("click", "Interfaz");
     this._ocultar(this.elOptionsPanel);
     this._mostrar(this.elMainMenu);
   }
 
   _onJugar() {
+    // Reproducir sonido de click
+    this.juego.gestorDeAudio.reproducir("click", "Interfaz");
+
     // Deshabilitar botones de inmediato para evitar dobles clicks
     this.btnJugar.disabled    = true;
     this.btnOpciones.disabled = true;

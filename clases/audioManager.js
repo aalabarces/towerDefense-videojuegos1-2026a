@@ -9,22 +9,35 @@ class GestorDeAudio {
       Interfaz: 1.0
     };
     
-    this.datosDeSonidos = {
-      clic: ['assets/audio/click1.wav'],
-      explosion: [ 'assets/audio/explosion1.wav' ],
-      grunido: ['assets/audio/grunt.ogg'],
-      disparo: [ 'assets/audio/shot2.wav' ],
-      pasos: [
-        'assets/audio/steps1.wav',
-        'assets/audio/steps2.wav',
-        'assets/audio/steps3.wav',
-        'assets/audio/steps4.wav',
-      ]
+    // Estructura unificada de datos de audio organizada por canal
+    this.datosDeAudio = {
+      Musica: {
+        start_intro: ['assets/audio/music/start.wav'],
+        menu_music: ['assets/audio/music/menumusic.mp3'],
+        bg_music: ['assets/audio/music/bgmusic.wav'],
+        game_over: ['assets/audio/music/gameover.wav']
+      },
+      Efectos: {
+        colocarTorre: ['assets/audio/fx/place.wav'],
+        explosion: [ 'assets/audio/fx/explosion1.wav' ],
+        grunido: ['assets/audio/fx/grunt.ogg'],
+        disparo: [ 'assets/audio/fx/shot2.wav' ],
+        pasos: [
+          'assets/audio/fx/steps1.wav',
+          'assets/audio/fx/steps2.wav',
+          'assets/audio/fx/steps3.wav',
+          'assets/audio/fx/steps4.wav',
+        ]
+      },
+      Interfaz: {
+        click: ['assets/audio/ui/click1.wav'],
+        slider: ['assets/audio/ui/click2.wav']
+      }
     };
 
     // Límites de instancias por grupo de sonido
     this.limites = {
-      clic: 3,
+      click: 3,
       explosion: 5,
       grunido: 3,
       disparo: 4,
@@ -33,7 +46,7 @@ class GestorDeAudio {
 
     // Cooldown (ms) por grupo de sonido
     this.cooldowns = {
-      clic: 0,
+      click: 0,
       explosion: 50,
       grunido: 1000,
       disparo: 100,
@@ -43,10 +56,12 @@ class GestorDeAudio {
     this.ultimaVezReproducido = {};
     this.instanciasActivas = {};
     
-    // Inicializar la lógica de seguimiento
-    for (let clave in this.datosDeSonidos) {
-      this.ultimaVezReproducido[clave] = 0;
-      this.instanciasActivas[clave] = 0;
+    // Inicializar la lógica de seguimiento para todos los canales y grupos de audio
+    for (const canal in this.datosDeAudio) {
+      for (const grupo in this.datosDeAudio[canal]) {
+        this.ultimaVezReproducido[grupo] = 0;
+        this.instanciasActivas[grupo] = 0;
+      }
     }
 
     // Estado de la música
@@ -58,36 +73,30 @@ class GestorDeAudio {
   }
 
   async inicializar() {
-    // Precargar sonidos a través de PIXI.sound.add
-    // Los agregamos con un ID formateado como: nombreGrupo_indice
-    for (const [grupo, rutas] of Object.entries(this.datosDeSonidos)) {
-      rutas.forEach((ruta, indice) => {
-        const idSonido = `${grupo}_${indice}`;
-        PIXI.sound.add(idSonido, ruta);
-      });
+    // Precargar todos los recursos de audio dinámicamente
+    // Agregamos cada archivo con un ID único formateado como: nombreGrupo_indice
+    for (const [canal, grupos] of Object.entries(this.datosDeAudio)) {
+      for (const [grupo, rutas] of Object.entries(grupos)) {
+        rutas.forEach((ruta, indice) => {
+          const idSonido = `${grupo}_${indice}`;
+          PIXI.sound.add(idSonido, ruta);
+        });
+      }
     }
-
-    // Agregar recursos para la intro y música de fondo
-    PIXI.sound.add('start_intro', 'assets/menu/start.wav');
-    PIXI.sound.add('menu_music', 'assets/menu/menumusic.mp3');
-    PIXI.sound.add('bg_music', 'assets/audio/bgmusic.wav');
-    PIXI.sound.add('game_over', 'assets/audio/gameover.wav');
   }
 
   playStartAndMenuMusic() {
-    PIXI.sound.stop('start_intro');
-    PIXI.sound.stop('menu_music');
+    this.stopMusica('start_intro');
+    this.stopMusica('menu_music');
 
     this.actualizarVolumenMusica();
 
-    PIXI.sound.play('start_intro', {
-      volume: this.canales.Musica,
-      loop: false,
+    this.reproducirMusica('start_intro', {
+      bucle: false,
       complete: () => {
         if (!this.juegoComenzado) {
-          PIXI.sound.play('menu_music', {
-            volume: this.canales.Musica,
-            loop: true
+          this.reproducirMusica('menu_music', {
+            bucle: true
           });
         }
       }
@@ -111,7 +120,43 @@ class GestorDeAudio {
     document.addEventListener('touchstart', iniciarMusicaMenu);
   }
 
-  fadeOut(alias, durationMs = 500, onComplete = null) {
+  // Desvanece todas las pistas asociadas a un grupo (de cualquier canal)
+  fadeOut(grupo, durationMs = 500, onComplete = null) {
+    // Buscar el grupo en cualquier canal
+    let rutas = null;
+    for (const canal in this.datosDeAudio) {
+      if (this.datosDeAudio[canal][grupo]) {
+        rutas = this.datosDeAudio[canal][grupo];
+        break;
+      }
+    }
+
+    if (!rutas) {
+      // Fallback si es un alias directo ya registrado en PIXI.sound
+      if (!PIXI.sound.exists(grupo)) {
+        if (onComplete) onComplete();
+        return;
+      }
+      this._fadeOutAlias(grupo, durationMs, onComplete);
+      return;
+    }
+
+    let completados = 0;
+    const total = rutas.length;
+
+    rutas.forEach((_, indice) => {
+      const alias = `${grupo}_${indice}`;
+      this._fadeOutAlias(alias, durationMs, () => {
+        completados++;
+        if (completados === total && onComplete) {
+          onComplete();
+        }
+      });
+    });
+  }
+
+  // Método auxiliar interno para desvanecer un alias específico de PIXI.sound
+  _fadeOutAlias(alias, durationMs, onComplete) {
     if (!PIXI.sound.exists(alias)) {
       if (onComplete) onComplete();
       return;
@@ -140,82 +185,134 @@ class GestorDeAudio {
   comenzarMusicaJuego() {
     this.juegoComenzado = true;
 
-    PIXI.sound.stop('start_intro');
-    PIXI.sound.stop('menu_music');
-    PIXI.sound.stop('bg_music');
+    this.stopMusica('start_intro');
+    this.stopMusica('menu_music');
+    this.stopMusica('bg_music');
 
     this.actualizarVolumenMusica();
 
-    PIXI.sound.play('bg_music', {
-      volume: this.canales.Musica,
-      loop: true
+    this.reproducirMusica('bg_music', {
+      bucle: true
     });
   }
 
+  // Métodos genéricos de control de audio por canal
+  stopAudio(grupo, nombreCanal) {
+    const canal = this.datosDeAudio[nombreCanal];
+    if (canal && canal[grupo]) {
+      canal[grupo].forEach((_, indice) => {
+        PIXI.sound.stop(`${grupo}_${indice}`);
+      });
+    }
+  }
+
+  pausarAudio(grupo, nombreCanal) {
+    const canal = this.datosDeAudio[nombreCanal];
+    if (canal && canal[grupo]) {
+      canal[grupo].forEach((_, indice) => {
+        PIXI.sound.pause(`${grupo}_${indice}`);
+      });
+    }
+  }
+
+  reanudarAudio(grupo, nombreCanal) {
+    const canal = this.datosDeAudio[nombreCanal];
+    if (canal && canal[grupo]) {
+      canal[grupo].forEach((_, indice) => {
+        PIXI.sound.resume(`${grupo}_${indice}`);
+      });
+    }
+  }
+
+  // Envoltorios (wrappers) para compatibilidad con la música
+  stopMusica(grupo) {
+    this.stopAudio(grupo, 'Musica');
+  }
+
+  pausarMusica(grupo) {
+    this.pausarAudio(grupo, 'Musica');
+  }
+
+  reanudarMusica(grupo) {
+    this.reanudarAudio(grupo, 'Musica');
+  }
+
   pausarMusicaJuego() {
-    PIXI.sound.pause('bg_music');
+    this.pausarMusica('bg_music');
   }
 
   reanudarMusicaJuego() {
     if (this.juegoComenzado) {
-      PIXI.sound.resume('bg_music');
+      this.reanudarMusica('bg_music');
     }
   }
 
   playGameOver() {
     this.juegoComenzado = false;
 
-    PIXI.sound.stop('bg_music');
-    PIXI.sound.stop('game_over');
+    this.stopMusica('bg_music');
+    this.stopMusica('game_over');
 
     this.actualizarVolumenMusica();
 
-    PIXI.sound.play('game_over', {
-      volume: this.canales.Musica,
-      loop: false
+    this.reproducirMusica('game_over', {
+      bucle: false
     });
   }
 
   actualizarVolumenMusica() {
     const vol = this.canales.Musica;
-    if (PIXI.sound.exists('start_intro')) PIXI.sound.volume('start_intro', vol);
-    if (PIXI.sound.exists('menu_music')) PIXI.sound.volume('menu_music', vol);
-    if (PIXI.sound.exists('bg_music')) PIXI.sound.volume('bg_music', vol);
-    if (PIXI.sound.exists('game_over')) PIXI.sound.volume('game_over', vol);
+    const canalMusica = this.datosDeAudio.Musica;
+    for (const grupo in canalMusica) {
+      canalMusica[grupo].forEach((_, indice) => {
+        const alias = `${grupo}_${indice}`;
+        if (PIXI.sound.exists(alias)) {
+          PIXI.sound.volume(alias, vol);
+        }
+      });
+    }
   }
 
   reproducir(grupo, nombreCanal = 'Efectos', opciones = {}) {
-    if (!this.datosDeSonidos[grupo]) {
-        console.warn(`Grupo de sonido ${grupo} no encontrado`);
+    const diccionario = this.datosDeAudio[nombreCanal];
+
+    if (!diccionario || !diccionario[grupo]) {
+        console.warn(`Grupo de audio ${grupo} no encontrado en el canal ${nombreCanal}`);
         return null;
     }
 
     const ahora = performance.now();
-    // Verificar cooldown
-    if (ahora - this.ultimaVezReproducido[grupo] < this.cooldowns[grupo]) {
+    
+    // Verificar cooldown (por defecto 0 si no se especifica)
+    const cooldown = this.cooldowns[grupo] !== undefined ? this.cooldowns[grupo] : 0;
+    if (ahora - this.ultimaVezReproducido[grupo] < cooldown) {
         return null;
     }
 
-    // Verificar límites
-    if (this.instanciasActivas[grupo] >= this.limites[grupo]) {
+    // Verificar límites (por defecto Infinity si no se especifica)
+    const limite = this.limites[grupo] !== undefined ? this.limites[grupo] : Infinity;
+    if (this.instanciasActivas[grupo] >= limite) {
         return null;
     }
 
     // Elegir un sonido aleatorio del grupo
-    const rutas = this.datosDeSonidos[grupo];
+    const rutas = diccionario[grupo];
     const indice = Math.floor(Math.random() * rutas.length);
     const idSonido = `${grupo}_${indice}`;
 
     this.ultimaVezReproducido[grupo] = ahora;
     this.instanciasActivas[grupo]++;
 
-    const volumenBase = this.canales[nombreCanal] || 1;
+    const volumenBase = this.canales[nombreCanal] !== undefined ? this.canales[nombreCanal] : 1;
     const opcionesReproduccion = {
       volume: (opciones.volumen !== undefined ? opciones.volumen : 1) * volumenBase,
-      loop: opciones.bucle || false,
+      loop: opciones.bucle !== undefined ? opciones.bucle : (opciones.loop !== undefined ? opciones.loop : false),
       speed: opciones.speed || 1,
       complete: () => {
         this.instanciasActivas[grupo]--;
+        if (opciones.complete) {
+          opciones.complete();
+        }
       }
     };
 
