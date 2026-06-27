@@ -210,18 +210,12 @@ class Juego {
   registrarEventosDeEntrada() {
     this.gameloop = this.gameloop.bind(this);
     this.onResize = this.onResize.bind(this);
-    this.onClick = this.onClick.bind(this);
-    this.onContextMenu = this.onContextMenu.bind(this);
-    this.onWheel = this.onWheel.bind(this);
 
     this.onVisibilityChange = this.onVisibilityChange.bind(this);
     this.onWindowBlur = this.onWindowBlur.bind(this);
     this.onWindowFocus = this.onWindowFocus.bind(this);
 
     window.addEventListener("resize", this.onResize);
-    window.addEventListener("click", this.onClick);
-    window.addEventListener("contextmenu", this.onContextMenu);
-    window.addEventListener("wheel", this.onWheel, { passive: false });
 
     // document.addEventListener("visibilitychange", this.onVisibilityChange);
     // window.addEventListener("blur", this.onWindowBlur);
@@ -246,59 +240,59 @@ class Juego {
     await this.gestorDeAudio.inicializar();
 
     this.assetEnemigo = await PIXI.Assets.load({
-      src: "assets/enemigo.json",
+      src: "assets/sprites/enemigo.json",
       data: { cachePrefix: "enemigo_" },
     });
     this.assetEnemigoDuro = await PIXI.Assets.load({
-      src: "assets/enemigoDuro.json",
+      src: "assets/sprites/enemigoDuro.json",
       data: { cachePrefix: "enemigoDuro_" },
     });
     this.assetEnemigoRapido = await PIXI.Assets.load({
-      src: "assets/enemigoRapido.json",
+      src: "assets/sprites/enemigoRapido.json",
       data: { cachePrefix: "enemigoRapido_" },
     });
     this.assetEnemigoFuerte = await PIXI.Assets.load({
-      src: "assets/enemigoFuerte.json",
+      src: "assets/sprites/enemigoFuerte.json",
       data: { cachePrefix: "enemigoFuerte_" },
     });
 
-    this.assetsSplat = await PIXI.Assets.load("assets/splat/splat.json");
+    this.assetsSplat = await PIXI.Assets.load("assets/sprites/splat/splat.json");
     this.assetExplosion = await PIXI.Assets.load(
-      "assets/explosion/explosions.json",
+      "assets/sprites/explosion/explosions.json",
     );
 
     this.assetTorre1 = await PIXI.Assets.load({
-      src: "assets/torre_ss/torre1.json",
+      src: "assets/sprites/torre_ss/torre1.json",
       data: { cachePrefix: "torre1_" },
     });
 
     this.assetPoli = await PIXI.Assets.load({
-      src: "assets/poli.json",
+      src: "assets/sprites/poli.json",
       data: { cachePrefix: "poli_" },
     });
 
     this.assetTorre2 = await PIXI.Assets.load({
-      src: "assets/torre2_ss/torre2.json",
+      src: "assets/sprites/torre2_ss/torre2.json",
       data: { cachePrefix: "torre2_" },
     });
 
     const imagenes = {
-      centroUrbano: "assets/centroUrbano.png",
-      torre1: "assets/torre1.png",
-      torre2: "assets/torre2.png",
-      torre3: "assets/torre3.png",
-      torre4: "assets/torre4.png",
-      torre5: "assets/torre5.png",
-      rock1: "assets/rock1.png",
-      rock2: "assets/rock2.png",
-      rock3: "assets/rock3.png",
-      rock4: "assets/rock4.png",
-      torre3_base: "assets/torre3/base.png",
-      torre3_tapa: "assets/torre3/tapa.png",
-      bg: "assets/fondo.jpg",
-      sombra: "assets/sombra.png",
-      arbol1: "assets/arbol1.png",
-      explosionDecal: "assets/explosion_decal.png",
+      centroUrbano: "assets/sprites/centroUrbano.png",
+      torre1: "assets/sprites/torre1.png",
+      torre2: "assets/sprites/torre2.png",
+      torre3: "assets/sprites/torre3.png",
+      torre4: "assets/sprites/torre4.png",
+      torre5: "assets/sprites/torre5.png",
+      rock1: "assets/sprites/rock1.png",
+      rock2: "assets/sprites/rock2.png",
+      rock3: "assets/sprites/rock3.png",
+      rock4: "assets/sprites/rock4.png",
+      torre3_base: "assets/sprites/torre3/base.png",
+      torre3_tapa: "assets/sprites/torre3/tapa.png",
+      bg: "assets/sprites/fondo.jpg",
+      sombra: "assets/sprites/sombra.png",
+      arbol1: "assets/sprites/arbol1.png",
+      explosionDecal: "assets/sprites/explosion_decal.png",
     };
 
     const entradas = Object.entries(imagenes);
@@ -411,12 +405,11 @@ class Juego {
     this.arrastrandoFantasma = null;
   }
 
-  onClick(event) {
+  intentarColocarFantasma() {
     if (this.pausado) return;
-    // console.log("on click", event);
     if (this.arrastrandoFantasma) {
       if (this.arrastrandoFantasma.esPreview) {
-        this.ponerTorre(event)
+        this.ponerTorre();
       } else if (
         this.arrastrandoFantasma.dataBoton &&
         this.arrastrandoFantasma.dataBoton.tipo == "piedra"
@@ -431,7 +424,7 @@ class Juego {
     }
   }
 
-  ponerTorre(event) {
+  ponerTorre() {
     if (!this.arrastrandoFantasma) return;
     if (!this.arrastrandoFantasma.esPreview) return;
     const torre = this.arrastrandoFantasma;
@@ -445,8 +438,7 @@ class Juego {
     this.gestorDeAudio.reproducir("colocarTorre", "Efectos");
   }
 
-  onWheel(event) {
-    event.preventDefault();
+  hacerZoom(deltaY, clientX, clientY) {
     if (this.pausado) return;
     if (!this.containerPrincipal) return;
 
@@ -454,27 +446,16 @@ class Juego {
     const zoomMin = zoomMinimoCover();
     const nuevoZoom = Math.min(
       ZOOM_MAX,
-      Math.max(zoomMin, zoom - event.deltaY * ZOOM_FACTOR * zoom),
+      Math.max(zoomMin, zoom - deltaY * ZOOM_FACTOR * zoom),
     );
 
-    const mouseX = event.clientX;
-    const mouseY = event.clientY;
-
-    const mundoX = (mouseX - this.containerPrincipal.x) / zoom;
-    const mundoY = (mouseY - this.containerPrincipal.y) / zoom;
+    const mundoX = (clientX - this.containerPrincipal.x) / zoom;
+    const mundoY = (clientY - this.containerPrincipal.y) / zoom;
 
     this.containerPrincipal.scale.set(nuevoZoom);
-    this.containerPrincipal.x = mouseX - mundoX * nuevoZoom;
-    this.containerPrincipal.y = mouseY - mundoY * nuevoZoom;
+    this.containerPrincipal.x = clientX - mundoX * nuevoZoom;
+    this.containerPrincipal.y = clientY - mundoY * nuevoZoom;
     this.clampCamaraAlMundo();
-  }
-
-  onContextMenu(event) {
-    event.preventDefault();
-    // if (this.ui?.fantasma) {
-    //   this.ui.cancelarColocacion();
-    //   return;
-    // }
   }
 
   pausa() {

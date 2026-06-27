@@ -9,6 +9,9 @@ class Input {
     window.addEventListener("keyup", this.onKeyUp.bind(this));
     window.addEventListener("mousedown", this.onMouseDown.bind(this));
     window.addEventListener("mousemove", this.onMouseMove.bind(this));
+    window.addEventListener("click", this.onClick.bind(this));
+    window.addEventListener("wheel", this.onWheel.bind(this), { passive: false });
+    window.addEventListener("contextmenu", this.onClickDerecho.bind(this));
   }
 
   onKeyDown(event) {
@@ -88,6 +91,20 @@ class Input {
 
   fuePresionada(key) {
     return !!this.teclasPresionadas[key];
+  }
+
+  onClick(event) {
+    this.juego.intentarColocarFantasma();
+  }
+
+  onWheel(event) {
+    event.preventDefault();
+    this.juego.hacerZoom(event.deltaY, event.clientX, event.clientY);
+  }
+
+  onClickDerecho(event) {
+    event.preventDefault();
+    this.juego.quitarFantasma();
   }
 
 }

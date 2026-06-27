@@ -284,28 +284,28 @@ body {
 
 /* 
 .botoncito:nth-child(1) {
-    background-image: url(assets/torre1.png);
+    background-image: url(assets/sprites/torre1.png);
 }
 
 .botoncito:nth-child(2) {
-    background-image: url(assets/torre2.png);
+    background-image: url(assets/sprites/torre2.png);
 }
 
 .botoncito:nth-child(3) {
-    background-image: url(assets/torre3.png);
+    background-image: url(assets/sprites/torre3.png);
 }
 
 .botoncito:nth-child(4) {
-    background-image: url(assets/torre4.png);
+    background-image: url(assets/sprites/torre4.png);
 }
 
 .botoncito:nth-child(5) {
-    background-image: url(assets/torre5.png);
+    background-image: url(assets/sprites/torre5.png);
 }
 
 
 .botoncito:nth-child(6) {
-    background-image: url(assets/rock1.png);
+    background-image: url(assets/sprites/rock1.png);
 } */
 
 
