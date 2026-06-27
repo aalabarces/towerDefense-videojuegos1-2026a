@@ -11,17 +11,9 @@ class GestorDeAudio {
     
     this.datosDeSonidos = {
       clic: ['assets/audio/click1.wav'],
-      explosion: [
-        'assets/audio/explosion1.wav',
-        'assets/audio/exlposion2.wav',
-        'assets/audio/explosion3.mp3',
-        'assets/audio/explosion4.wav'
-      ],
+      explosion: [ 'assets/audio/explosion1.wav' ],
       grunido: ['assets/audio/grunt.ogg'],
-      disparo: [
-        'assets/audio/shot1.wav',
-        'assets/audio/shot2.wav',
-      ],
+      disparo: [ 'assets/audio/shot2.wav' ],
       pasos: [
         'assets/audio/steps1.wav',
         'assets/audio/steps2.wav',
@@ -56,6 +48,13 @@ class GestorDeAudio {
       this.ultimaVezReproducido[clave] = 0;
       this.instanciasActivas[clave] = 0;
     }
+
+    // Estado de la música
+    this.juegoComenzado = false;
+    this.instanciaStartIntro = null;
+    this.instanciaMenuMusic = null;
+    this.instanciaBgMusic = null;
+    this.instanciaGameOver = null;
   }
 
   async inicializar() {
@@ -67,6 +66,122 @@ class GestorDeAudio {
         PIXI.sound.add(idSonido, ruta);
       });
     }
+
+    // Agregar recursos para la intro y música de fondo
+    PIXI.sound.add('start_intro', 'assets/menu/start.wav');
+    PIXI.sound.add('menu_music', 'assets/menu/menumusic.mp3');
+    PIXI.sound.add('bg_music', 'assets/audio/bgmusic.wav');
+    PIXI.sound.add('game_over', 'assets/audio/gameover.wav');
+  }
+
+  playStartAndMenuMusic() {
+    PIXI.sound.stop('start_intro');
+    PIXI.sound.stop('menu_music');
+
+    this.actualizarVolumenMusica();
+
+    PIXI.sound.play('start_intro', {
+      volume: this.canales.Musica,
+      loop: false,
+      complete: () => {
+        if (!this.juegoComenzado) {
+          PIXI.sound.play('menu_music', {
+            volume: this.canales.Musica,
+            loop: true
+          });
+        }
+      }
+    });
+  }
+
+  setupMenuMusicTrigger() {
+    const iniciarMusicaMenu = () => {
+      cleanup();
+      if (!this.juegoComenzado) {
+        this.playStartAndMenuMusic();
+      }
+    };
+    const cleanup = () => {
+      document.removeEventListener('click', iniciarMusicaMenu);
+      document.removeEventListener('keydown', iniciarMusicaMenu);
+      document.removeEventListener('touchstart', iniciarMusicaMenu);
+    };
+    document.addEventListener('click', iniciarMusicaMenu);
+    document.addEventListener('keydown', iniciarMusicaMenu);
+    document.addEventListener('touchstart', iniciarMusicaMenu);
+  }
+
+  fadeOut(alias, durationMs = 500, onComplete = null) {
+    if (!PIXI.sound.exists(alias)) {
+      if (onComplete) onComplete();
+      return;
+    }
+    const volumenInicial = PIXI.sound.volume(alias);
+    const pasoDesvanecimiento = volumenInicial / (durationMs / 16.6);
+    let volumenActual = volumenInicial;
+    const intervaloDesvanecimiento = setInterval(() => {
+      volumenActual -= pasoDesvanecimiento;
+      if (volumenActual <= 0) {
+        PIXI.sound.volume(alias, 0);
+        PIXI.sound.stop(alias);
+        clearInterval(intervaloDesvanecimiento);
+        if (onComplete) onComplete();
+      } else {
+        PIXI.sound.volume(alias, volumenActual);
+      }
+    }, 16.6);
+  }
+
+  fadeMenuMusicAndIntro(durationMs = 500) {
+    this.fadeOut('start_intro', durationMs);
+    this.fadeOut('menu_music', durationMs);
+  }
+
+  comenzarMusicaJuego() {
+    this.juegoComenzado = true;
+
+    PIXI.sound.stop('start_intro');
+    PIXI.sound.stop('menu_music');
+    PIXI.sound.stop('bg_music');
+
+    this.actualizarVolumenMusica();
+
+    PIXI.sound.play('bg_music', {
+      volume: this.canales.Musica,
+      loop: true
+    });
+  }
+
+  pausarMusicaJuego() {
+    PIXI.sound.pause('bg_music');
+  }
+
+  reanudarMusicaJuego() {
+    if (this.juegoComenzado) {
+      PIXI.sound.resume('bg_music');
+    }
+  }
+
+  playGameOver() {
+    this.juegoComenzado = false;
+
+    PIXI.sound.stop('bg_music');
+    PIXI.sound.stop('game_over');
+
+    this.actualizarVolumenMusica();
+
+    PIXI.sound.play('game_over', {
+      volume: this.canales.Musica,
+      loop: false
+    });
+  }
+
+  actualizarVolumenMusica() {
+    const vol = this.canales.Musica;
+    if (PIXI.sound.exists('start_intro')) PIXI.sound.volume('start_intro', vol);
+    if (PIXI.sound.exists('menu_music')) PIXI.sound.volume('menu_music', vol);
+    if (PIXI.sound.exists('bg_music')) PIXI.sound.volume('bg_music', vol);
+    if (PIXI.sound.exists('game_over')) PIXI.sound.volume('game_over', vol);
   }
 
   reproducir(grupo, nombreCanal = 'Efectos', opciones = {}) {

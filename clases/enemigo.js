@@ -316,7 +316,7 @@ class Enemigo extends EntidadConSalud {
       this.animationFSM.currentStateName === "caminando" ||
       this.animationFSM.currentStateName === "corriendo"
     ) {
-      this.juego.gestorDeAudio.reproducirEfecto("pasos");
+      this.juego.gestorDeAudio.reproducirEfecto("pasos", { volumen: 0.1, speed: Math.random() * 0.6 + 0.7 });
     }
   }
 

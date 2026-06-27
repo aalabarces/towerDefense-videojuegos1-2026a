@@ -49,8 +49,10 @@ class Juego {
     this.deltaTime = 1 / 60;
     this.numeroDeFrame = 0;
     this.pausado = false;
+    this.juegoTerminado = false;
     this.usuario = new Usuario();
     this.debugMode = false;
+    this.tiempoSobrevivido = 0;
     this.estamosArrastrandoUnItemPAraPonerlo = null;
 
     this.gestorDeAudio = new GestorDeAudio(this);
@@ -99,6 +101,7 @@ class Juego {
    */
   comenzarJuego() {
     this.iniciarBucleDeJuego();
+    this.gestorDeAudio.comenzarMusicaJuego();
   }
 
   /**
@@ -409,6 +412,7 @@ class Juego {
   }
 
   onClick(event) {
+    if (this.pausado) return;
     // console.log("on click", event);
     if (this.arrastrandoFantasma) {
       if (this.arrastrandoFantasma.esPreview) {
@@ -436,6 +440,7 @@ class Juego {
 
   onWheel(event) {
     event.preventDefault();
+    if (this.pausado) return;
     if (!this.containerPrincipal) return;
 
     const zoom = this.containerPrincipal.scale.x;
@@ -466,24 +471,34 @@ class Juego {
   }
 
   pausa() {
+    if (this.juegoTerminado) return;
     this.pausado = true;
-    // this.app?.ticker?.stop();
-    // PIXI.Ticker.shared.stop();
+    if (window.menu) {
+      window.menu.prepararModoPausa();
+    }
+    const optionsPanel = document.getElementById("options-panel");
+    if (optionsPanel) optionsPanel.style.display = "flex";
     console.log("pausando juego");
+    this.gestorDeAudio.pausarMusicaJuego();
   }
 
   reanudar() {
+    if (this.juegoTerminado) return;
     if (!this.pausado) return;
     console.log("reanudando juego");
     this.pausado = false;
-    // this.app?.ticker?.start();
-    // PIXI.Ticker.shared.start();
-    // this.gameloop();
+    this.ultimoFrameRenderizado = performance.now();
+    const optionsPanel = document.getElementById("options-panel");
+    if (optionsPanel) optionsPanel.style.display = "none";
+    this.gestorDeAudio.reanudarMusicaJuego();
   }
 
   gameOver() {
-    this.pausa();
+    this.juegoTerminado = true;
+    this.pausado = true;
+    this.gestorDeAudio.pausarMusicaJuego();
     this.ui.mostrarGameOver();
+    this.gestorDeAudio.playGameOver();
   }
 
   onVisibilityChange() {
@@ -570,7 +585,12 @@ class Juego {
   }
 
   gameloop() {
-    if (this.pausado) return;
+    this.input.update();
+
+    if (this.pausado) {
+      requestAnimationFrame(this.gameloop);
+      return;
+    }
 
     this.grilla.resetear();
 
@@ -579,7 +599,6 @@ class Juego {
       gameObject.update();
     }
     this.nivel.update();
-    this.input.update();
     this.ui.update();
     this.actualizarDeltaTime();
 
@@ -592,6 +611,10 @@ class Juego {
     this.fps = 1000 / this.deltaTime;
     this.deltaTimeRatio = this.deltaTime / 16.666666666666667;
     this.ultimoFrameRenderizado = performance.now();
+
+    if (!this.pausado && !this.juegoTerminado && this.pixiInicializado) {
+      this.tiempoSobrevivido += this.deltaTime / 1000;
+    }
   }
 
   toggleDebug() {

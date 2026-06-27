@@ -104,7 +104,7 @@ class Torre extends Estructura {
 
     this.tiempoDesdeUltimoDisparo = 0;
 
-    this.juego.gestorDeAudio.reproducirEfecto("disparo");
+    this.juego.gestorDeAudio.reproducirEfecto("disparo", { volumen: 0.1, speed: Math.random() * 0.6 + 0.7 });
 
     const posFuturaDelEnemigo = {
       x: enemigo.posicion.x + enemigo.velocidad.x * 60,

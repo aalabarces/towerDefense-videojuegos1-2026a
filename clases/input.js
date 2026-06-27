@@ -47,10 +47,7 @@ class Input {
     }
     
     if (this.juego.pausado) return;
-    console.log(this.juego.grilla.getCeldaEnPosicion(this.mouse.x, this.mouse.y))
-    console.log(this.juego.grilla.getCeldaEnPosicion(this.mouse.x, this.mouse.y)?.getObjetoEnPosicion(this.mouse.x, this.mouse.y))
     const nuevoSeleccionado = this.juego.grilla.getCeldaEnPosicion(this.mouse.x, this.mouse.y)?.getObjetoEnPosicion(this.mouse.x, this.mouse.y);
-    console.log("nuevoSeleccionado", nuevoSeleccionado?.constructor.name, nuevoSeleccionado?.id);
     if (nuevoSeleccionado !== this.objetoSeleccionado) {
       this.objetoSeleccionado?.onMouseOut();
       nuevoSeleccionado?.onMouseOver();
