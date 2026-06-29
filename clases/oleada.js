@@ -1,66 +1,36 @@
-const TIPOS_ENEMIGOS = [
-  {
-    clase: "base",
-    costo: 10,
-    oleada_desbloqueo: 1,
-  },
-  {
-    clase: "rapido",
-    costo: 20,
-    oleada_desbloqueo: 3,
-    // oleada_desbloqueo: 1,
-  },
-  {
-    clase: "duro",
-    costo: 30,
-    oleada_desbloqueo: 8,
-    // oleada_desbloqueo: 1,
-  },
-  {
-    clase: "fuerte",
-    costo: 30,
-    oleada_desbloqueo: 15,
-    // oleada_desbloqueo: 1,
-  },
-];
-
 class Oleada {
   constructor(juego, numero) {
     this.juego = juego;
     this.numero = numero;
-    this.duracion = 15 + numero * 2;
-    this.intervaloSpawn = Math.max(0.2, 1.5 - numero * 0.05);
+    this.config = juego.config.getOleadas();
+
+    this.intervaloSpawn = juego.config.calcularIntervaloSpawnMs(numero);
     this.tiempoSiguienteSpawn = this.intervaloSpawn;
-    this.presupuesto = this.calcularPresupuesto();
-    console.log("Presupuesto ", this.presupuesto);
+    this.presupuesto = juego.config.calcularPresupuestoOleada(numero);
     this.enemigosDisponibles = this.obtenerEnemigosDesbloqueados();
     this.enemigosDeLaOleada = [];
     this.generarOleada();
   }
 
-  calcularPresupuesto() {
-    return 10 + 16 * Math.pow(1.22, this.numero - 1);
-  }
-
   obtenerEnemigosDesbloqueados() {
-    const enemigos = [];
-    for (let i = 0; i < TIPOS_ENEMIGOS.length; i++) {
-      if (TIPOS_ENEMIGOS[i].oleada_desbloqueo <= this.numero) {
-        enemigos.push(TIPOS_ENEMIGOS[i]);
-      }
-    }
-    return enemigos;
+    return this.juego.config
+      .getListaEnemigosOleada()
+      .filter((tipo) => tipo.oleadaDesbloqueo <= this.numero);
   }
 
   generarOleada() {
     while (this.presupuesto > 0) {
-      const tipoEnemigo =
-        this.enemigosDisponibles[
-          Math.floor(Math.random() * this.enemigosDisponibles.length)
-        ];
-      const enemigo = this.juego.nivel.spawnEnemigo(tipoEnemigo.clase);
+      const tipoEnemigo = this.juego.config.elegirArquetipoOleada(
+        this.numero,
+        this.enemigosDisponibles,
+      );
+
+      const enemigo = this.juego.nivel.spawnEnemigo(
+        tipoEnemigo.clase,
+        this.numero,
+      );
       this.enemigosDeLaOleada.push(enemigo);
-      this.presupuesto -= tipoEnemigo.costo;
+      this.presupuesto -= tipoEnemigo.costoOleada;
     }
   }
 

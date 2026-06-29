@@ -102,8 +102,10 @@ class EntidadConSalud extends GameObject {
   }
 
   recibirDaño(cuanto) {
+    const max =
+      this.juego?.config?.getCombate()?.dañoMaximoPorGolpe ?? 0.5;
     const vidaAnterior = this.vida;
-    this.vida -= Math.min(cuanto, 0.5);
+    this.vida -= Math.min(cuanto, max);
     const dañoReal = vidaAnterior - this.vida;
 
     this.actualizarBarraDeVida();

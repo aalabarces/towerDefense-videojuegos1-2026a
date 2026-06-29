@@ -1,13 +1,10 @@
 class Torre1 extends Torre {
   constructor(x, y, juego, tipo) {
-    super(x, y, juego, tipo);
+    super(x, y, juego, tipo, juego.config.getTorre(1));
     this.tipoDeTorre = 1;
-    this.cooldown = 300;
-    this.tiempoDesdeUltimoDisparo = this.cooldown;
     this.cargarSpritesTorre(juego.assetTorre1);
     this.cambiarAnimacion("s");
     this.offsetSalidaBala = { x: 0, y: -200 };
-    // this.escalaMuzzle = 0.85;
     this.offsetsMuzzle = {
       n: { x: 0, y: -252 },
       ne: { x: 50, y: -245 },

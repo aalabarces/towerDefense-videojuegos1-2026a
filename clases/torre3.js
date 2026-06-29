@@ -1,9 +1,7 @@
 class Torre3 extends Torre {
   constructor(x, y, juego, tipo) {
-    super(x, y, juego, tipo);
+    super(x, y, juego, tipo, juego.config.getTorre(3));
     this.tipoDeTorre = 3;
-    this.cooldown = 100;
-    this.tiempoDesdeUltimoDisparo = this.cooldown;
     this.inicializarSpritesDeTorre3(1);
     this.offsetSalidaBala = { x: 0, y: -135 };
     // this.escalaMuzzle = 0.85;

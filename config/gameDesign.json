@@ -1,0 +1,138 @@
+{
+  "_documentacion": {
+    "unidades": {
+      "tiempoMs": "milisegundos",
+      "distanciaPx": "pixeles del mundo",
+      "vida": "puntos de vida (1 = enemigo normal)",
+      "plata": "moneda del jugador"
+    }
+  },
+  "meta": {
+    "version": "1.0.0",
+    "duracionPartidaObjetivoMinutos": 15
+  },
+  "economia": {
+    "plataInicial": 200,
+    "recompensaPlataPorKillDefault": 10
+  },
+  "centroUrbano": {
+    "integridadMaxima": 3,
+    "multiplicadorDañoExplosion": 2,
+    "radioColision": 80
+  },
+  "combate": {
+    "dañoMaximoPorGolpe": 0.5,
+    "umbralEstadoMoribundo": 0.66
+  },
+  "movimientoEnemigo": {
+    "velocidadMaximaDefault": 2.5,
+    "aceleracionDefault": 0.25,
+    "friccion": 0.9,
+    "distanciaNodoCamino": 150,
+    "distanciaInmolacion": 100,
+    "distanciaPersonal": 30,
+    "fuerzaSeparacion": 0.5,
+    "fuerzaRepulsionObstaculos": 0.8,
+    "radioVision": 500,
+    "radioColision": 10
+  },
+  "enemigos": {
+    "base": {
+      "vidaMaxima": 1,
+      "velocidadMaxima": 2.5,
+      "aceleracion": 0.25,
+      "costoOleada": 10,
+      "oleadaDesbloqueo": 1,
+      "recompensaPlata": 8,
+      "dañoLeak": 1
+    },
+    "rapido": {
+      "vidaMaxima": 1,
+      "velocidadMaxima": 7,
+      "aceleracion": 0.4,
+      "costoOleada": 20,
+      "oleadaDesbloqueo": 3,
+      "recompensaPlata": 15,
+      "dañoLeak": 1
+    },
+    "duro": {
+      "vidaMaxima": 4,
+      "velocidadMaxima": 2,
+      "aceleracion": 0.2,
+      "costoOleada": 35,
+      "oleadaDesbloqueo": 8,
+      "recompensaPlata": 25,
+      "dañoLeak": 1
+    },
+    "fuerte": {
+      "vidaMaxima": 2,
+      "velocidadMaxima": 2.5,
+      "aceleracion": 0.25,
+      "costoOleada": 40,
+      "oleadaDesbloqueo": 15,
+      "recompensaPlata": 30,
+      "dañoLeak": 2
+    }
+  },
+  "oleadas": {
+    "tiempoEntreOleadasMs": 6000,
+    "tiempoInicialAntesPrimeraOleadaMs": 6000,
+    "presupuestoBase": 10,
+    "presupuestoMultiplicador": 16,
+    "presupuestoExponente": 1.18,
+    "intervaloSpawnInicialMs": 1500,
+    "intervaloSpawnMinimoMs": 250,
+    "intervaloSpawnReduccionPorOleadaMs": 40,
+    "escaladoVidaPorOleada": 0.06,
+    "composicionPonderada": true,
+    "pesosPorOleada": {
+      "3": { "base": 0.7, "rapido": 0.3 },
+      "8": { "base": 0.5, "duro": 0.3, "rapido": 0.2 },
+      "15": { "base": 0.4, "duro": 0.3, "rapido": 0.2, "fuerte": 0.1 }
+    }
+  },
+  "torres": {
+    "1": {
+      "precio": 100,
+      "dañoPorDisparo": 0.08,
+      "cooldownMs": 350,
+      "radioVision": 450,
+      "radioColision": 40
+    },
+    "2": {
+      "precio": 150,
+      "dañoPorDisparo": 0.06,
+      "cooldownMs": 500,
+      "radioVision": 320,
+      "radioColision": 40
+    },
+    "3": {
+      "precio": 250,
+      "dañoPorDisparo": 0.04,
+      "cooldownMs": 90,
+      "radioVision": 380,
+      "radioColision": 40
+    }
+  },
+  "piedras": {
+    "1": { "precio": 10, "vidaMaxima": 2, "radioColision": 45 },
+    "2": { "precio": 20, "vidaMaxima": 4, "radioColision": 50 },
+    "3": { "precio": 35, "vidaMaxima": 6, "radioColision": 55 },
+    "4": { "precio": 50, "vidaMaxima": 10, "radioColision": 60 }
+  },
+  "consumibles": {
+    "superBomba": {
+      "precio": 500,
+      "dañoGlobal": 0.5,
+      "duracionSacudidaMs": 1000,
+      "intensidadSacudida": 66
+    }
+  },
+  "explosiones": {
+    "radioArea": 100,
+    "factorDañoEnemigos": 150,
+    "factorDañoEstructuras": 150,
+    "multiplicadorDañoEstructuras": 5,
+    "framesAntesDeDetonar": 50
+  }
+}

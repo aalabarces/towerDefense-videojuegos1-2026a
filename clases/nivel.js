@@ -6,8 +6,9 @@ class Nivel {
 
     this.oleadaActual = null;
     this.oleadas = 0;
-    this.tiempoEntreOleadas = 5000;
-    this.tiempoSiguienteOleada = 5000;
+    this.tiempoEntreOleadas = juego.config.getOleadas().tiempoEntreOleadasMs;
+    this.tiempoSiguienteOleada =
+      juego.config.getOleadas().tiempoInicialAntesPrimeraOleadaMs;
 
     this.juego.agregarFondoDelMundo();
     // this.juego.spawnCentroUrbano();
@@ -75,12 +76,13 @@ class Nivel {
     }
   }
 
-  spawnEnemigo(tipo) {
+  spawnEnemigo(tipo, numeroOleada = 1) {
     return this.juego.spawnEnemigo(
       this.posicionDeSpawn.x,
       this.posicionDeSpawn.y,
       {
         tipo,
+        numeroOleada,
       },
     );
   }

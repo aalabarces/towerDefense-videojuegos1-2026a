@@ -10,19 +10,25 @@ class Enemigo extends EntidadConSalud {
 
     this.juego = juego;
     this.dataJson = opciones.dataJson ?? juego.assetsCivil;
-    this.distanciaParaLlegar = 150;
+    this.arquetipo = opciones.arquetipo ?? "base";
+    this.numeroOleada = opciones.numeroOleada ?? 1;
+
+    const mov = juego.config.getMovimientoEnemigo();
+    this.distanciaParaLlegar = mov.distanciaNodoCamino;
     this.rapidezWalk = 1;
     this.rapidezRun = 2;
 
-    this.aceleracionParaCorrer = 0.25;
-    this.distanciaParaExplotarElCentroUrbano = 100;
-    this.radio = 10;
-    this.radioDeVision = 500;
-    this.velocidadMaxima = 2;
+    this.aceleracionParaCorrer = mov.aceleracionDefault;
+    this.distanciaParaExplotarElCentroUrbano = mov.distanciaInmolacion;
+    this.radio = mov.radioColision;
+    this.radioDeVision = mov.radioVision;
+    this.velocidadMaxima = mov.velocidadMaximaDefault;
     this.distanciaParaEscaparmeDeLaPersonaQueMeAsusta = 40;
     this.enemigosCerca = [];
     this.torresCerca = [];
-    this.distanciaPersonal = 30; // distancia mínima deseada respecto a otros enemigos
+    this.distanciaPersonal = mov.distanciaPersonal;
+    this._fuerzaSeparacion = mov.fuerzaSeparacion;
+    this._fuerzaRepulsionObstaculos = mov.fuerzaRepulsionObstaculos;
     this.distanciaAlCentroUrbano = 9999999;
     this.mostrarVida = true;
     // this.estado = opciones.estadoInicial ?? "idle";
@@ -40,9 +46,11 @@ class Enemigo extends EntidadConSalud {
 
     this.estatico = false;
 
-    this.friccion = 0.9;
+    this.friccion = mov.friccion;
     this.nodoDelCaminoActual = 0;
     this.asignarTarget(this.juego.nivel.nodosDelCamino[0]);
+
+    this.aplicarConfigArquetipo(this.arquetipo, this.numeroOleada);
 
     this.cargarSpritesAnimados(this.dataJson);
     this.spriteSplat = this.crearSpriteSplat(juego.assetsSplat);
@@ -293,6 +301,30 @@ class Enemigo extends EntidadConSalud {
     this.juego.estamparSangre(this);
   }
 
+  aplicarConfigArquetipo(arquetipo, numeroOleada) {
+    const stats = this.juego.config.getEnemigo(arquetipo);
+
+    this.arquetipo = arquetipo;
+    this.costoOleada = stats.costoOleada;
+    this.recompensaPlata = stats.recompensaPlata;
+    this.dañoLeak = stats.dañoLeak;
+
+    if (stats.velocidadMaxima != null) {
+      this.velocidadMaxima = stats.velocidadMaxima;
+    }
+    if (stats.aceleracion != null) {
+      this.aceleracionParaCorrer = stats.aceleracion;
+    }
+
+    const vidaEscalada = this.juego.config.calcularVidaEscalada(
+      stats.vidaMaxima,
+      numeroOleada,
+    );
+    this.vidaMax = vidaEscalada;
+    this.vida = this.vidaMax;
+    this.actualizarBarraDeVida();
+  }
+
   recibirDaño(cuanto) {
     if (cuanto > 1) cuanto = 1;
     super.recibirDaño(cuanto);
@@ -301,9 +333,21 @@ class Enemigo extends EntidadConSalud {
   }
 
   morir() {
+    const cercaDelCentro =
+      this.distanciaAlCentroUrbano <
+      this.distanciaParaExplotarElCentroUrbano;
+
+    if (cercaDelCentro && this.juego.centroUrbano) {
+      this.juego.centroUrbano.recibirDañoLeak(this.dañoLeak ?? 1);
+    }
+
     super.morir();
     this.juego.gestorDeAudio.reproducirEfecto("grunido");
-    this.juego.sumarPlata(10);
+
+    const recompensa =
+      this.recompensaPlata ??
+      this.juego.config.getEconomia().recompensaPlataPorKillDefault;
+    this.juego.sumarPlata(recompensa);
   }
 
   render() {
@@ -440,7 +484,7 @@ class Enemigo extends EntidadConSalud {
     ];
 
     if (nuevoArrayConTodosLosObstaculosCerca.length === 0) return;
-    const fuerzaMaxima = 0.8;
+    const fuerzaMaxima = this._fuerzaRepulsionObstaculos ?? 0.8;
 
     for (let obstaculo of nuevoArrayConTodosLosObstaculosCerca) {
       const dx = miPosFutura.x - obstaculo.posicion.x;
@@ -463,7 +507,7 @@ class Enemigo extends EntidadConSalud {
     if (!this.enemigosCerca || this.enemigosCerca.length === 0) return;
     const cuantoMirarAlrededor = 300;
 
-    const fuerzaMaxima = 0.8;
+    const fuerzaMaxima = this._fuerzaRepulsionObstaculos ?? 0.8;
 
     for (let enemigo of this.enemigosCerca) {
       if (enemigo.behaviorFSM.currentStateName !== "aPuntoDeExplotar") continue;
@@ -548,7 +592,7 @@ class Enemigo extends EntidadConSalud {
   separacion() {
     if (!this.enemigosCerca || this.enemigosCerca.length === 0) return;
 
-    const fuerzaMax = 0.5; // fuerza máxima de empuje para separarse (ajustable)
+    const fuerzaMax = this._fuerzaSeparacion ?? 0.5;
 
     for (let i = 0; i < this.enemigosCerca.length; i++) {
       const otro = this.enemigosCerca[i];

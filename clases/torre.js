@@ -1,19 +1,22 @@
 class Torre extends Estructura {
-  constructor(x, y, juego, tipo = 1) {
+  constructor(x, y, juego, tipo = 1, stats = null) {
     super(x, y, juego);
-    this.radio = 40;
-    this.radioDeVision = 400;
+
+    stats = stats ?? juego.config.getTorre(tipo);
+
+    this.radio = stats.radioColision;
+    this.radioDeVision = stats.radioVision;
 
     this.tipo = "torre";
     this.tipoDeTorre = tipo;
-    this.cooldown = 100;
+    this.cooldown = stats.cooldownMs;
     this.tiempoDesdeUltimoDisparo = this.cooldown;
     this.offsetSalidaBala = { x: 0, y: -50 };
     this.offsetsMuzzle = null;
     this.escalaMuzzle = 1.5;
     this.zIndexMuzzleArriba = -200;
     this.zIndexMuzzleFrente = 500;
-    this.dañoPorDisparo = 0.05;
+    this.dañoPorDisparo = stats.dañoPorDisparo;
 
     this.rangeCircle = this.crearCirculoDeRango(this.radioDeVision);
     this.rangeCircle.visible = juego.debugMode;

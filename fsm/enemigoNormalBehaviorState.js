@@ -10,7 +10,9 @@ class EnemigoNormalBehaviorState extends FSMState {
     }
   }
   doChecks() {
-    if (this.owner.vida < 0.66) {
+    const umbral =
+      this.owner.juego.config.getCombate().umbralEstadoMoribundo;
+    if (this.owner.vida < umbral) {
       this.fsm.setState("moribundo");
     }
   }

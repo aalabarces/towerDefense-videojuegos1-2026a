@@ -54,7 +54,8 @@ class Juego {
     this.numeroDeFrame = 0;
     this.pausado = false;
     this.juegoTerminado = false;
-    this.usuario = new Usuario();
+    this.usuario = null;
+    this.config = null;
     this.debugMode = false;
     this.tiempoSobrevivido = 0;
     this.estamosArrastrandoUnItemPAraPonerlo = null;
@@ -84,11 +85,12 @@ class Juego {
   }
 
   tirarSuperBomba() {
-    this.sacudirCamara(66, 1000);
-    this.flashBlanco(1000);
+    const cfg = this.config.getConsumibles().superBomba;
+    this.sacudirCamara(cfg.intensidadSacudida, cfg.duracionSacudidaMs);
+    this.flashBlanco(cfg.duracionSacudidaMs);
     for (let enemigo of this.enemigos) {
       if (enemigo._muerto) continue;
-      enemigo.recibirDaño(0.33);
+      enemigo.recibirDaño(cfg.dañoGlobal);
     }
     this.gestorDeAudio.reproducir("explosion", "Efectos", { speed: 0.25 });
   }
@@ -103,6 +105,9 @@ class Juego {
     }
 
     await this.inicializarAplicacionPixi();
+    this.config = await ConfigJuego.cargar("config/gameDesign.json");
+    this.usuario = new Usuario(this.config.getEconomia().plataInicial);
+
     this.configurarOrdenamientoDelStage();
     this.agregarSpriteFlashBlancoAlStage();
     this.registrarAppGlobalParaDepuracion();
@@ -438,6 +443,7 @@ class Juego {
 
   spawnEnemigo(x, y, opciones = {}) {
     const tipo = opciones.tipo ?? "base";
+    const numeroOleada = opciones.numeroOleada ?? 1;
     const ClasePorTipo = {
       base: EnemigoNormal,
       rapido: EnemigoRapido,
@@ -445,7 +451,7 @@ class Juego {
       fuerte: EnemigoFuerte,
     };
     const Clase = ClasePorTipo[tipo] ?? EnemigoNormal;
-    const enemigo = new Clase(x, y, this, opciones);
+    const enemigo = new Clase(x, y, this, { ...opciones, numeroOleada });
     return this.agregarGameObject(enemigo);
   }
 
@@ -465,14 +471,14 @@ class Juego {
     else if (tipo == 3) clase = Torre3;
 
     const torre = new clase(x, y, this, tipo);
-    this.usuario.plata -= precioCompra("torre", tipo);
+    this.usuario.plata -= this.config.precioCompra("torre", tipo);
 
     return this.agregarGameObject(torre);
   }
 
   spawnPiedra(x, y, tipo = 1, restaPlata = true) {
     const piedra = new Piedra(x, y, this, tipo);
-    if (restaPlata) this.usuario.plata -= precioCompra("piedra", tipo);
+    if (restaPlata) this.usuario.plata -= this.config.precioCompra("piedra", tipo);
     return this.agregarGameObject(piedra);
   }
 
@@ -517,7 +523,7 @@ class Juego {
     if (torre.rangeCircle) {
       torre.rangeCircle.visible = this.debugMode;
     }
-    this.usuario.plata -= precioCompra("torre", torre.tipoDeTorre);
+    this.usuario.plata -= this.config.precioCompra("torre", torre.tipoDeTorre);
     this.arrastrandoFantasma = null;
     this.gestorDeAudio.reproducir("colocarTorre", "Efectos");
   }
@@ -925,6 +931,9 @@ class Juego {
   }
 
   ponerExplosion(x, y, quienRevento) {
+    const expCfg = this.config.getExplosiones();
+    const radioArea = expCfg.radioArea;
+
     const spriteAnimado = new PIXI.AnimatedSprite(
       this.assetExplosion.animations.explosion2,
     );
@@ -954,36 +963,41 @@ class Juego {
       alpha: Math.random() * 0.3 + 0.4,
     });
 
-    const enemigosEnArea = this.getEnemigosCerca(x, y, 100).filter(
+    const leakYaAplicadoAlCentro =
+      quienRevento instanceof Enemigo &&
+      quienRevento.distanciaAlCentroUrbano <
+        quienRevento.distanciaParaExplotarElCentroUrbano;
+
+    const enemigosEnArea = this.getEnemigosCerca(x, y, radioArea).filter(
       (enemigo) => {
         return enemigo !== quienRevento;
       },
     );
 
-    const torresEnArea = this.getTorresCerca(x, y, 100);
+    const torresEnArea = this.getTorresCerca(x, y, radioArea);
     const nuevoArrayConTodosLosObjetosEnArea = [
       ...torresEnArea,
       this.centroUrbano,
     ];
 
-    //casas
     for (let objeto of nuevoArrayConTodosLosObjetosEnArea) {
       if (!objeto?.container || objeto._muerto) continue;
+      if (leakYaAplicadoAlCentro && objeto === this.centroUrbano) continue;
 
       const cuantoDaño =
-        150 / distanciaCuadrada(objeto, { posicion: { x, y } });
+        expCfg.factorDañoEstructuras /
+        distanciaCuadrada(objeto, { posicion: { x, y } });
 
-      // console.log("cuantoDaño", cuantoDaño);
-      objeto.recibirDaño(cuantoDaño * 5);
+      objeto.recibirDaño(cuantoDaño * expCfg.multiplicadorDañoEstructuras);
     }
 
     for (let enemigo of enemigosEnArea) {
       if (!enemigo?.container || enemigo._muerto) continue;
 
       const cuantoDaño =
-        150 / distanciaCuadrada(enemigo, { posicion: { x, y } });
+        expCfg.factorDañoEnemigos /
+        distanciaCuadrada(enemigo, { posicion: { x, y } });
 
-      // console.log("cuantoDaño", cuantoDaño);
       enemigo.recibirDaño(cuantoDaño);
     }
   }

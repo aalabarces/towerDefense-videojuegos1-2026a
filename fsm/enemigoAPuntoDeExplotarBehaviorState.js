@@ -3,7 +3,9 @@ class EnemigoAPuntoDeExplotarBehaviorState extends FSMState {
     this.owner.animationFSM.setState("aPuntoDeExplotar");
   }
   update() {
-    if (this.currentFrame >= 50) {
+    const frames =
+      this.owner.juego.config.getExplosiones().framesAntesDeDetonar;
+    if (this.currentFrame >= frames) {
       this.owner.morir();
     }
   }

@@ -7,7 +7,7 @@ class UIHTML {
 
     document.body.appendChild(this.contenedorHTML);
 
-    this.botones = CATALOGO_BOTONES.map((def) => ({ ...def }));
+    this.botones = enriquecerCatalogo(juego.config);
 
     this.crearBotones();
     this.crearDivGameOver();

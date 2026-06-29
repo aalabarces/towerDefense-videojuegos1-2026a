@@ -1,6 +1,6 @@
 class Usuario {
-  constructor() {
-    this.plata = 200;
+  constructor(plataInicial = 200) {
+    this.plata = plataInicial;
   }
 
   sumarPlata(cuanto) {
