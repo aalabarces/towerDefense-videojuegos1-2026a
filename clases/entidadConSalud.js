@@ -67,9 +67,17 @@ class EntidadConSalud extends GameObject {
   }
 
   recibirDaño(cuanto) {
+    const vidaAnterior = this.vida;
     this.vida -= Math.min(cuanto, 0.5);
+    const dañoReal = vidaAnterior - this.vida;
+
     this.actualizarBarraDeVida();
     this.chequearMuerte();
+
+    if (dañoReal > 0) {
+      const ySpriteMinimo = this.posicion.y - (this.sprite ? this.sprite.height : 40);
+      this.juego.crearTextoDaño(this.posicion.x, ySpriteMinimo, dañoReal);
+    }
   }
 
   explotar() {

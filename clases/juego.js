@@ -40,6 +40,7 @@ class Juego {
     this.casitas = [];
     this.balas = [];
     this.arboles = [];
+    this.textosDaño = [];
 
     this.pixiInicializado = false;
     this.input = new Input(this);
@@ -85,8 +86,6 @@ class Juego {
 
     this.crearContainerPrincipal();
     this.crearCapaDecals();
-    // this.agregarFondoDelMundo();
-    // this.spawnCentroUrbano();
     this.nivel = new Nivel(this);
 
     this.crearInterfazUsuario();
@@ -592,6 +591,7 @@ class Juego {
     this.nivel.update();
     this.ui.update();
     this.actualizarDeltaTime();
+    this.actualizarTextosDaño();
 
     requestAnimationFrame(this.gameloop);
   }
@@ -605,6 +605,56 @@ class Juego {
 
     if (!this.pausado && !this.juegoTerminado && this.pixiInicializado) {
       this.tiempoSobrevivido += this.deltaTime / 1000;
+    }
+  }
+
+  crearTextoDaño(x, y, daño) {
+    const dañoFormateado = Math.round(daño * 100);
+    if (dañoFormateado <= 0) return;
+
+    const texto = new PIXI.Text({
+      text: dañoFormateado.toString(),
+      style: {
+        fontFamily: 'MedievalSharp',
+        fontSize: 22,
+        fontWeight: 'bold',
+        fill: '#ff3333',
+        stroke: { color: '#000000', width: 4 },
+        align: 'center'
+      }
+    });
+
+    texto.anchor.set(0.5, 0.5);
+    texto.x = x;
+    texto.y = y;
+    texto.zIndex = 10000;
+
+    this.containerPrincipal.addChild(texto);
+    this.textosDaño.push({
+      textObject: texto,
+      tiempoAcumulado: 0,
+      posicionInicialY: y
+    });
+  }
+
+  actualizarTextosDaño() {
+    const dt = this.deltaTime;
+    for (let i = this.textosDaño.length - 1; i >= 0; i--) {
+      const td = this.textosDaño[i];
+      td.tiempoAcumulado += dt;
+      const progreso = Math.min(1, td.tiempoAcumulado / 1000);
+
+      // Subir unos pixeles durante un segundo
+      td.textObject.y = td.posicionInicialY - progreso * 45;
+
+      // Desvanecer (fade out)
+      td.textObject.alpha = 1 - progreso;
+
+      if (progreso >= 1) {
+        this.containerPrincipal.removeChild(td.textObject);
+        td.textObject.destroy();
+        this.textosDaño.splice(i, 1);
+      }
     }
   }
 
