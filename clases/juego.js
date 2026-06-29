@@ -2,6 +2,9 @@ const MUNDO_ANCHO = 3500;
 const MUNDO_ALTO = 2350;
 const ANCHO_CELDA = 100;
 const CAMARA_VELOCIDAD = 20;
+const CAMARA_SACUDIDA_INTENSIDAD_DEFECTO = 10;
+const CAMARA_SACUDIDA_DURACION_DEFECTO = 300;
+const FLASH_BLANCO_DURACION_DEFECTO = 300;
 const ZOOM_MAX = 2.0;
 const ZOOM_FACTOR = 0.001;
 const BASE_FRAME_MS = 1000 / 60;
@@ -38,7 +41,7 @@ class Juego {
     this.centrosUrbanos = [];
     this.personas = [];
     this.casitas = [];
-    this.balas = [];
+    // this.balas = [];
     this.arboles = [];
 
     this.pixiInicializado = false;
@@ -55,6 +58,18 @@ class Juego {
     this.tiempoSobrevivido = 0;
     this.estamosArrastrandoUnItemPAraPonerlo = null;
 
+    this._offsetSacudidaX = 0;
+    this._offsetSacudidaY = 0;
+    this.camaraSacudida = null;
+
+    this.spriteFlashBlanco = new PIXI.Sprite(PIXI.Texture.WHITE);
+    this.spriteFlashBlanco.tint = 0xffffff;
+    this.spriteFlashBlanco.alpha = 0;
+    this.spriteFlashBlanco.visible = false;
+    this.spriteFlashBlanco.zIndex = 99999;
+    this.spriteFlashBlanco.eventMode = "none";
+    this.estadoFlashBlanco = null;
+
     this.gestorDeAudio = new GestorDeAudio(this);
 
     this.clasesDeTorre = [];
@@ -65,6 +80,16 @@ class Juego {
 
   sumarPlata(cuanto) {
     this.usuario.sumarPlata(cuanto);
+  }
+
+  tirarSuperBomba() {
+    this.sacudirCamara(66, 1000);
+    this.flashBlanco(1000);
+    for (let enemigo of this.enemigos) {
+      if (enemigo._muerto) continue;
+      enemigo.recibirDaño(0.33);
+    }
+    this.gestorDeAudio.reproducir("explosion", "Efectos", { speed: 0.25 });
   }
 
   /**
@@ -78,6 +103,7 @@ class Juego {
 
     await this.inicializarAplicacionPixi();
     this.configurarOrdenamientoDelStage();
+    this.agregarSpriteFlashBlancoAlStage();
     this.registrarAppGlobalParaDepuracion();
     this.agregarCanvasEnBody();
 
@@ -136,6 +162,51 @@ class Juego {
    */
   configurarOrdenamientoDelStage() {
     this.app.stage.sortableChildren = true;
+  }
+
+  agregarSpriteFlashBlancoAlStage() {
+    this.actualizarTamanoSpriteFlashBlanco();
+    this.app.stage.addChild(this.spriteFlashBlanco);
+  }
+
+  actualizarTamanoSpriteFlashBlanco() {
+    if (!this.spriteFlashBlanco) return;
+    this.spriteFlashBlanco.width = window.innerWidth;
+    this.spriteFlashBlanco.height = window.innerHeight;
+  }
+
+  /**
+   * Flash blanco de pantalla completa: alpha 1 → 0 en la duración indicada.
+   * @param {number} [duracion=FLASH_BLANCO_DURACION_DEFECTO] duración en ms
+   */
+  flashBlanco(duracion = FLASH_BLANCO_DURACION_DEFECTO) {
+    if (!this.spriteFlashBlanco) return;
+
+    this.estadoFlashBlanco = {
+      tiempoRestante: duracion,
+      duracionTotal: duracion,
+    };
+    this.spriteFlashBlanco.visible = true;
+    this.spriteFlashBlanco.alpha = 1;
+  }
+
+  actualizarFlashBlanco() {
+    if (!this.estadoFlashBlanco || !this.spriteFlashBlanco) return;
+
+    this.estadoFlashBlanco.tiempoRestante -= this.deltaTime;
+
+    const progreso = Math.max(
+      0,
+      this.estadoFlashBlanco.tiempoRestante /
+        this.estadoFlashBlanco.duracionTotal,
+    );
+    this.spriteFlashBlanco.alpha = progreso;
+
+    if (this.estadoFlashBlanco.tiempoRestante <= 0) {
+      this.spriteFlashBlanco.alpha = 0;
+      this.spriteFlashBlanco.visible = false;
+      this.estadoFlashBlanco = null;
+    }
   }
 
   /**
@@ -256,7 +327,9 @@ class Juego {
       data: { cachePrefix: "enemigoFuerte_" },
     });
 
-    this.assetsSplat = await PIXI.Assets.load("assets/splat/splat.json");
+    this.assetsSplat = await PIXI.Assets.load(
+      "assets/sprites/splat/splat.json",
+    );
     this.assetExplosion = await PIXI.Assets.load(
       "assets/sprites/explosion/explosions.json",
     );
@@ -277,25 +350,27 @@ class Juego {
     });
 
     const imagenes = {
-      centroUrbano: "assets/centroUrbano.png",
-      torre1: "assets/torre1.png",
-      torre2: "assets/torre2.png",
-      torre3: "assets/torre3.png",
-      torre4: "assets/torre4.png",
-      torre5: "assets/torre5.png",
-      rock1: "assets/rock1.png",
-      rock2: "assets/rock2.png",
-      rock3: "assets/rock3.png",
-      rock4: "assets/rock4.png",
-      torre3_base: "assets/torre3/base.png",
-      torre3_tapa: "assets/torre3/tapa.png",
-      bg: "assets/fondo.jpg",
-      sombra: "assets/sombra.png",
-      arbol1: "assets/arbol1.png",
-      arbol2: "assets/arbol2.png",
-      arbol3: "assets/arbol3.png",
-      arbol4: "assets/arbol4.png",
-      explosionDecal: "assets/explosion_decal.png",
+      centroUrbano: "assets/sprites/centroUrbano.png",
+      torre1: "assets/sprites/torre1.png",
+      torre2: "assets/sprites/torre2.png",
+
+      torre3_base: "assets/sprites/torre3/base.png",
+      torre3_tapa: "assets/sprites/torre3/tapa.png",
+      torre4: "assets/sprites/torre4.png",
+      torre5: "assets/sprites/torre5.png",
+      rock1: "assets/sprites/rock1.png",
+      rock2: "assets/sprites/rock2.png",
+      rock3: "assets/sprites/rock3.png",
+      rock4: "assets/sprites/rock4.png",
+      torre3_base: "assets/sprites/torre3/base.png",
+      torre3_tapa: "assets/sprites/torre3/tapa.png",
+      bg: "assets/sprites/fondo.jpg",
+      sombra: "assets/sprites/sombra.png",
+      arbol1: "assets/sprites/arbol1.png",
+      arbol2: "assets/sprites/arbol2.png",
+      arbol3: "assets/sprites/arbol3.png",
+      arbol4: "assets/sprites/arbol4.png",
+      explosionDecal: "assets/sprites/explosion_decal.png",
     };
 
     const entradas = Object.entries(imagenes);
@@ -368,10 +443,10 @@ class Juego {
     return this.agregarGameObject(enemigo);
   }
 
-  emitirBala(quienDispara, x, y) {
-    const bala = new Bala(x, y, this, quienDispara);
-    this.agregarGameObject(bala);
-  }
+  // emitirBala(quienDispara, x, y) {
+  //   const bala = new Bala(x, y, this, quienDispara);
+  //   this.agregarGameObject(bala);
+  // }
   spawnCentroUrbano(x, y) {
     this.centroUrbano = new CentroUrbano(x, y, this);
     return this.agregarGameObject(this.centroUrbano);
@@ -389,9 +464,9 @@ class Juego {
     return this.agregarGameObject(torre);
   }
 
-  spawnPiedra(x, y, tipo = 1) {
+  spawnPiedra(x, y, tipo = 1, restaPlata = true) {
     const piedra = new Piedra(x, y, this, tipo);
-    this.usuario.plata -= precioCompra("piedra", tipo);
+    if (restaPlata) this.usuario.plata -= precioCompra("piedra", tipo);
     return this.agregarGameObject(piedra);
   }
 
@@ -521,6 +596,7 @@ class Juego {
       }
     }
     this.clampCamaraAlMundo();
+    this.actualizarTamanoSpriteFlashBlanco();
     // this.ui?.posicionarPanel();
   }
 
@@ -555,6 +631,55 @@ class Juego {
     }
   }
 
+  /**
+   * Sacude la cámara durante un tiempo. La intensidad es el desplazamiento máximo en px.
+   * @param {number} [intensidad=CAMARA_SACUDIDA_INTENSIDAD_DEFECTO]
+   * @param {number} [duracion=CAMARA_SACUDIDA_DURACION_DEFECTO] duración en ms
+   */
+  sacudirCamara(
+    intensidad = CAMARA_SACUDIDA_INTENSIDAD_DEFECTO,
+    duracion = CAMARA_SACUDIDA_DURACION_DEFECTO,
+  ) {
+    if (!this.containerPrincipal) return;
+
+    this.camaraSacudida = {
+      intensidad,
+      tiempoRestante: duracion,
+      duracionTotal: duracion,
+    };
+  }
+
+  _removerOffsetSacudida() {
+    if (!this.containerPrincipal) return;
+    if (!this._offsetSacudidaX && !this._offsetSacudidaY) return;
+
+    this.containerPrincipal.x -= this._offsetSacudidaX;
+    this.containerPrincipal.y -= this._offsetSacudidaY;
+    this._offsetSacudidaX = 0;
+    this._offsetSacudidaY = 0;
+  }
+
+  actualizarSacudidaCamara() {
+    if (!this.containerPrincipal || !this.camaraSacudida) return;
+
+    this.camaraSacudida.tiempoRestante -= this.deltaTime;
+
+    if (this.camaraSacudida.tiempoRestante <= 0) {
+      this.camaraSacudida = null;
+      return;
+    }
+
+    const progreso =
+      this.camaraSacudida.tiempoRestante / this.camaraSacudida.duracionTotal;
+    const intensidadActual = this.camaraSacudida.intensidad * progreso;
+
+    this._offsetSacudidaX = (Math.random() * 2 - 1) * intensidadActual;
+    this._offsetSacudidaY = (Math.random() * 2 - 1) * intensidadActual;
+
+    this.containerPrincipal.x += this._offsetSacudidaX;
+    this.containerPrincipal.y += this._offsetSacudidaY;
+  }
+
   moverCamara() {
     if (!this.containerPrincipal) return;
     const desplazamiento = CAMARA_VELOCIDAD * this.deltaTimeRatio;
@@ -585,7 +710,10 @@ class Juego {
 
     this.grilla.resetear();
 
+    this._removerOffsetSacudida();
     this.moverCamara();
+    this.actualizarSacudidaCamara();
+    this.actualizarFlashBlanco();
     for (let gameObject of this.gameObjects) {
       gameObject.update();
     }

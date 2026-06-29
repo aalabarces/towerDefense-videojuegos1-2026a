@@ -8,6 +8,8 @@ class Torre extends Estructura {
     this.tipoDeTorre = tipo;
     this.cooldown = 100;
     this.tiempoDesdeUltimoDisparo = this.cooldown;
+    this.offsetSalidaBala = { x: 0, y: -50 };
+    this.dañoPorDisparo = 0.05;
 
     this.rangeCircle = this.crearCirculoDeRango(this.radioDeVision);
     this.rangeCircle.visible = juego.debugMode;
@@ -57,6 +59,13 @@ class Torre extends Estructura {
     }
   }
 
+  getPosicionSalidaBala() {
+    return {
+      x: this.posicion.x + this.offsetSalidaBala.x,
+      y: this.posicion.y + this.offsetSalidaBala.y,
+    };
+  }
+
   obtenerDireccion8(dx, dy) {
     const angulo = Math.atan2(dy, dx) * (180 / Math.PI);
 
@@ -104,26 +113,29 @@ class Torre extends Estructura {
 
     this.tiempoDesdeUltimoDisparo = 0;
 
-    this.juego.gestorDeAudio.reproducirEfecto("disparo", { volumen: 0.1, speed: Math.random() * 0.6 + 0.7 });
+    this.juego.gestorDeAudio.reproducirEfecto("disparo", {
+      volumen: 0.1,
+      speed: Math.random() * 0.6 + 0.7,
+    });
 
-    const posFuturaDelEnemigo = {
-      x: enemigo.posicion.x + enemigo.velocidad.x * 60,
-      y: enemigo.posicion.y + enemigo.velocidad.y * 60,
-    };
+    // this.juego.emitirBala(this, enemigo.posicion.x, enemigo.posicion.y);
 
-    this.juego.emitirBala(this, posFuturaDelEnemigo.x, posFuturaDelEnemigo.y);
+    if (typeof enemigo.recibirDaño === "function" && !enemigo._muerto) {
+      enemigo.recibirDaño(this.dañoPorDisparo);
+    }
 
-    const dx = posFuturaDelEnemigo.x - this.posicion.x;
-    const dy =
-      posFuturaDelEnemigo.y - 30 - this.posicion.y - this.lineaDisparo.y;
+    const salida = this.getPosicionSalidaBala();
+    this.lineaDisparo.y = this.offsetSalidaBala.y;
+    const dx = enemigo.posicion.x - salida.x;
+    const dy = enemigo.posicion.y - salida.y;
     this.lineaDisparo.height = Math.hypot(dx, dy);
     this.lineaDisparo.rotation = Math.atan2(-dx, dy);
     this.lineaDisparo.visible = true;
 
-    if (this.sprite) this.sprite.tint = 0xaa0000;
+    // if (this.sprite) this.sprite.tint = 0xaa0000;
     setTimeout(() => {
       if (!this.sprite) return;
-      this.sprite.tint = 0xffffff;
+      // this.sprite.tint = 0xffffff;
       this.lineaDisparo.visible = false;
     }, 30);
   }

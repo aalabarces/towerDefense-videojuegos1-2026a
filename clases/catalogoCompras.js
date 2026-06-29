@@ -20,19 +20,19 @@ const CATALOGO_BOTONES = [
     nombreTextura: "torre3",
     precio: 250,
   },
+  // {
+  //   tipo: "torre",
+  //   id: 4,
+  //   url: "assets/sprites/torre4.png",
+  //   nombreTextura: "torre4",
+  //   precio: 405,
+  // },
   {
-    tipo: "torre",
-    id: 4,
-    url: "assets/sprites/torre4.png",
-    nombreTextura: "torre4",
-    precio: 405,
-  },
-  {
-    tipo: "torre",
+    tipo: "superBomba",
     id: 5,
     url: "assets/sprites/torre5.png",
     nombreTextura: "torre5",
-    precio: 660,
+    precio: 500,
   },
   {
     tipo: "piedra",

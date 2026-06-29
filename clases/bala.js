@@ -1,8 +1,10 @@
+/*
 class Bala extends GameObject {
   static velocidadBala = 20;
   static vidaUtil = 60 * 5;
   constructor(x, y, juego, quienDispara) {
-    super(quienDispara.posicion.x, quienDispara.posicion.y - 50, juego);
+    const salida = quienDispara.getPosicionSalidaBala();
+    super(salida.x, salida.y, juego);
     this.tiempoVida = 0;
     this.sprite = new PIXI.Sprite(juego.texturas.sombra);
     this.sprite.scale.set(0.05);
@@ -15,10 +17,7 @@ class Bala extends GameObject {
     this.quienDispara = quienDispara;
     this._impactada = false;
 
-    this.agregarAceleracion(
-      (x - quienDispara.posicion.x) * 10,
-      (y - quienDispara.posicion.y) * 10,
-    );
+    this.agregarAceleracion((x - salida.x) * 10, (y - salida.y) * 10);
   }
 
   update() {
@@ -79,3 +78,4 @@ class Bala extends GameObject {
 }
 
 window.Bala = Bala;
+*/

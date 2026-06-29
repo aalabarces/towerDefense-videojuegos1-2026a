@@ -48,9 +48,16 @@ class UIHTML {
     button.onclick = (event) => {
       this.juego.quitarFantasma();
       event.stopPropagation();
-      console.log(button.data);
 
       this.juego.gestorDeAudio.reproducirInterfaz('clic');
+
+      if (cualBoton.tipo === "superBomba") {
+        if (this.juego.usuario.plata < cualBoton.precio) return;
+        this.juego.usuario.plata -= cualBoton.precio;
+        this.juego.tirarSuperBomba();
+        return;
+      }
+
       this.juego.crearSpriteFantasma(button.data);
     };
   }

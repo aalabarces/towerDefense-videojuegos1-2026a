@@ -85,7 +85,8 @@ class Nivel {
     );
   }
   crearPiedra(x, y) {
-    this.juego.spawnPiedra(x, y, Math.floor(Math.random() * 4) + 1);
+    //esto viene del nivel. json
+    this.juego.spawnPiedra(x, y, Math.floor(Math.random() * 4) + 1, false);
   }
 
   crearArbol(x, y) {

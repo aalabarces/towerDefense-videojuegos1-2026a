@@ -7,5 +7,6 @@ class Torre1 extends Torre {
     this.cargarSpritesTorre(juego.assetTorre1);
     this.cambiarAnimacion("s");
     this.ajustarLineaDisparo();
+    this.offsetSalidaBala = { x: 0, y: -200 };
   }
 }

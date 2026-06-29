@@ -67,6 +67,7 @@ class EntidadConSalud extends GameObject {
   }
 
   recibirDaño(cuanto) {
+    // this.container.
     this.vida -= Math.min(cuanto, 0.5);
     this.actualizarBarraDeVida();
     this.chequearMuerte();

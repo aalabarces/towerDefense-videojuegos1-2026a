@@ -6,6 +6,7 @@ class Torre3 extends Torre {
     this.tiempoDesdeUltimoDisparo = this.cooldown;
     this.inicializarSpritesDeTorre3(1);
     this.ajustarLineaDisparo();
+    this.offsetSalidaBala = { x: 0, y: -135 };
   }
 
   // Arma la estructura visual de la torre: base, policía animado (entre ambas capas) y tapa.
@@ -133,6 +134,11 @@ class Torre3 extends Torre {
   //   idle ──(enemigo aparece)──► sacar_arma ──(onComplete)──► disparando
   //   disparando ──(enemigo desaparece)──► guardando_arma ──(onComplete)──► idle
   update() {
+    if (this.esPreview) {
+      this.render();
+      return;
+    }
+
     this.tiempoDesdeUltimoDisparo += this.juego.deltaTime;
 
     this.enemigosCerca = this.juego.getEnemigosCerca(
