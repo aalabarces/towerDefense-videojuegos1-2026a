@@ -9,6 +9,10 @@ class Torre extends Estructura {
     this.cooldown = 100;
     this.tiempoDesdeUltimoDisparo = this.cooldown;
     this.offsetSalidaBala = { x: 0, y: -50 };
+    this.offsetsMuzzle = null;
+    this.escalaMuzzle = 1.5;
+    this.zIndexMuzzleArriba = -200;
+    this.zIndexMuzzleFrente = 500;
     this.dañoPorDisparo = 0.05;
 
     this.rangeCircle = this.crearCirculoDeRango(this.radioDeVision);
@@ -26,6 +30,8 @@ class Torre extends Estructura {
     this._escalaLineaDisparoX = 1;
     this._flipLineaDisparo = false;
     this.container.addChild(this.lineaDisparo);
+
+    this.inicializarMuzzleFlash();
 
     juego.torres.push(this);
   }
@@ -45,6 +51,11 @@ class Torre extends Estructura {
     }
   }
 
+  cambiarAnimacion(direccion) {
+    super.cambiarAnimacion(direccion);
+    this.posicionarMuzzleFlash(direccion);
+  }
+
   crearCirculoDeRango(radio) {
     const rangeCircle = new PIXI.Graphics();
     rangeCircle.beginFill(0xff0000, 0.15);
@@ -59,11 +70,131 @@ class Torre extends Estructura {
       this.inicializarBarraDeVida();
     }
     this.posicionarOrigenLineaDisparo();
+    this.posicionarMuzzleFlash();
   }
 
   posicionarOrigenLineaDisparo() {
     this.lineaDisparo.x = this.offsetSalidaBala.x;
     this.lineaDisparo.y = this.offsetSalidaBala.y;
+  }
+
+  obtenerDireccionDisparo(dx, dy) {
+    return this.obtenerDireccion8(dx, dy);
+  }
+
+  obtenerDireccionDesdeAngulo(angulo) {
+    return this.obtenerDireccion8(Math.cos(angulo), Math.sin(angulo));
+  }
+
+  getDireccionMuzzleActual() {
+    return this.direccion ?? "s";
+  }
+
+  apuntaHaciaArriba(direccion) {
+    return direccion === "n" || direccion === "ne" || direccion === "no";
+  }
+
+  getOffsetMuzzle(direccion = this.getDireccionMuzzleActual()) {
+    return this.offsetsMuzzle?.[direccion] ?? this.offsetSalidaBala;
+  }
+
+  getZIndexMuzzle(direccion) {
+    return this.apuntaHaciaArriba(direccion)
+      ? this.zIndexMuzzleArriba
+      : this.zIndexMuzzleFrente;
+  }
+
+  indiceCapaMuzzleDetras() {
+    if (this.spriteBase) return this.container.getChildIndex(this.spriteBase);
+    if (this.sprite) return this.container.getChildIndex(this.sprite);
+    return 1;
+  }
+
+  aplicarCapaMuzzle(direccion) {
+    if (!this.muzzleFlash || !this.container) return;
+
+    this.muzzleFlash.zIndex = this.getZIndexMuzzle(direccion);
+
+    if (this.apuntaHaciaArriba(direccion)) {
+      this.container.setChildIndex(
+        this.muzzleFlash,
+        this.indiceCapaMuzzleDetras(),
+      );
+    } else {
+      this.container.addChild(this.muzzleFlash);
+    }
+  }
+
+  static crearOffsetsMuzzle8(baseX = 0, baseY = -220, escala = 1) {
+    const s = escala;
+    return {
+      n: { x: baseX, y: baseY },
+      ne: { x: baseX + 48 * s, y: baseY + 8 * s },
+      e: { x: baseX + 68 * s, y: baseY + 32 * s },
+      se: { x: baseX + 48 * s, y: baseY + 68 * s },
+      s: { x: baseX, y: baseY + 88 * s },
+      so: { x: baseX - 48 * s, y: baseY + 68 * s },
+      o: { x: baseX - 68 * s, y: baseY + 32 * s },
+      no: { x: baseX - 48 * s, y: baseY + 8 * s },
+    };
+  }
+
+  inicializarMuzzleFlash() {
+    if (!this.juego.framesMuzzle?.length) return;
+
+    this.muzzleFlash = new PIXI.AnimatedSprite(this.juego.framesMuzzle);
+    this.muzzleFlash.label = "muzzleFlash";
+    this.muzzleFlash.anchor.set(0, 0.5);
+    this.muzzleFlash.visible = false;
+    this.muzzleFlash.loop = false;
+    this.muzzleFlash.animationSpeed = 0.4;
+    this.muzzleFlash.scale.set(this.escalaMuzzle);
+    this.muzzleFlash.onComplete = () => {
+      this.muzzleFlash.visible = false;
+    };
+    this.muzzleFlash.play();
+
+    this.container.addChild(this.muzzleFlash);
+    this.posicionarMuzzleFlash();
+  }
+
+  getRotacionMuzzle(direccion) {
+    const rotaciones8 = {
+      e: 0,
+      se: Math.PI / 4,
+      s: Math.PI / 2,
+      so: (3 * Math.PI) / 4,
+      o: Math.PI,
+      no: (-3 * Math.PI) / 4,
+      n: -Math.PI / 2,
+      ne: -Math.PI / 4,
+    };
+    const rotaciones4 = {
+      right: 0,
+      down: Math.PI / 2,
+      left: Math.PI,
+      up: -Math.PI / 2,
+    };
+    return rotaciones4[direccion] ?? rotaciones8[direccion] ?? 0;
+  }
+
+  posicionarMuzzleFlash(direccion = this.getDireccionMuzzleActual()) {
+    if (!this.muzzleFlash) return;
+
+    this.muzzleFlash.scale.set(this.escalaMuzzle);
+    const off = this.getOffsetMuzzle(direccion);
+    this.muzzleFlash.x = off.x;
+    this.muzzleFlash.y = off.y;
+    this.muzzleFlash.rotation = this.getRotacionMuzzle(direccion);
+    this.aplicarCapaMuzzle(direccion);
+  }
+
+  activarMuzzleFlash(direccion = this.getDireccionMuzzleActual()) {
+    if (!this.muzzleFlash) return;
+
+    this.posicionarMuzzleFlash(direccion);
+    this.muzzleFlash.visible = true;
+    this.muzzleFlash.gotoAndPlay(0);
   }
 
   aplicarTransformacionLineaDisparo() {
@@ -175,6 +306,7 @@ class Torre extends Estructura {
     this._anguloLineaDisparo = Math.atan2(dy, dx);
     this.lineaDisparo.visible = true;
     this.actualizarLineaDisparoVisible();
+    this.activarMuzzleFlash(this.getDireccionMuzzleActual());
 
     // if (this.sprite) this.sprite.tint = 0xaa0000;
     setTimeout(() => {

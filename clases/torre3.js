@@ -5,8 +5,27 @@ class Torre3 extends Torre {
     this.cooldown = 100;
     this.tiempoDesdeUltimoDisparo = this.cooldown;
     this.inicializarSpritesDeTorre3(1);
-    this.ajustarLineaDisparo();
     this.offsetSalidaBala = { x: 0, y: -135 };
+    // this.escalaMuzzle = 0.85;
+    this.offsetsMuzzle = {
+      up: { x: -6, y: -168 },
+      down: { x: 0, y: -102 },
+      left: { x: -42, y: -132 },
+      right: { x: 42, y: -132 },
+    };
+    this.ajustarLineaDisparo();
+  }
+
+  obtenerDireccionDisparo(dx, dy) {
+    return this.obtenerDireccionLPC(dx, dy);
+  }
+
+  getDireccionMuzzleActual() {
+    return this.direccionPoliActual ?? "down";
+  }
+
+  apuntaHaciaArriba(direccion) {
+    return direccion === "up";
   }
 
   // Arma la estructura visual de la torre: base, policía animado (entre ambas capas) y tapa.
@@ -125,6 +144,7 @@ class Torre3 extends Torre {
     this.spritesPoliActual = spr;
     this.accionPoliActual = accion;
     this.direccionPoliActual = dir;
+    this.posicionarMuzzleFlash(dir);
   }
 
   // Convierte un vector (dx, dy) a una de las 4 direcciones del formato LPC.

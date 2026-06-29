@@ -348,6 +348,12 @@ class Juego {
       data: { cachePrefix: "torre2_" },
     });
 
+    this.framesMuzzle = [
+      await PIXI.Assets.load("assets/sprites/muzzle1.png"),
+      await PIXI.Assets.load("assets/sprites/muzzle2.png"),
+      await PIXI.Assets.load("assets/sprites/muzzle3.png"),
+    ];
+
     const imagenes = {
       centroUrbano: "assets/sprites/centroUrbano.png",
       torre1: "assets/sprites/torre1.png",
@@ -956,11 +962,11 @@ class Juego {
 
     const torresEnArea = this.getTorresCerca(x, y, 100);
     const nuevoArrayConTodosLosObjetosEnArea = [
-      ...enemigosEnArea,
       ...torresEnArea,
       this.centroUrbano,
     ];
 
+    //casas
     for (let objeto of nuevoArrayConTodosLosObjetosEnArea) {
       if (!objeto?.container || objeto._muerto) continue;
 
@@ -968,7 +974,17 @@ class Juego {
         150 / distanciaCuadrada(objeto, { posicion: { x, y } });
 
       // console.log("cuantoDaño", cuantoDaño);
-      objeto.recibirDaño(cuantoDaño);
+      objeto.recibirDaño(cuantoDaño * 5);
+    }
+
+    for (let enemigo of enemigosEnArea) {
+      if (!enemigo?.container || enemigo._muerto) continue;
+
+      const cuantoDaño =
+        150 / distanciaCuadrada(enemigo, { posicion: { x, y } });
+
+      // console.log("cuantoDaño", cuantoDaño);
+      enemigo.recibirDaño(cuantoDaño);
     }
   }
 }
