@@ -19,7 +19,7 @@ class Torre extends Estructura {
     // this.cambiarAnimacion("s");
 
     this.lineaDisparo = new PIXI.Sprite(juego.texturas.fireline);
-    this.lineaDisparo.anchor.set(1, 0.5);
+    this.lineaDisparo.anchor.set(0.5, 0.5);
     this.lineaDisparo.x = this.offsetSalidaBala.x;
     this.lineaDisparo.y = this.offsetSalidaBala.y;
     this.lineaDisparo.visible = false;
@@ -84,9 +84,8 @@ class Torre extends Estructura {
     const offsetMax = Math.min(longitud * 0.5, Math.max(0, D - longitud));
     const offset = Math.random() * offsetMax;
     const desdeDisparador = Math.random() < 0.5;
-    const finDesdeOrigen = desdeDisparador
-      ? offset + longitud
-      : D - offset;
+    const inicio = desdeDisparador ? offset : D - offset - longitud;
+    const centro = inicio + longitud * 0.5;
 
     this._escalaLineaDisparoX = longitud / tex.width;
     this._flipLineaDisparo = Math.random() < 0.5;
@@ -95,8 +94,8 @@ class Torre extends Estructura {
     const oy = this.offsetSalidaBala.y;
     const a = this._anguloLineaDisparo;
     this.lineaDisparo.rotation = a;
-    this.lineaDisparo.x = ox + Math.cos(a) * finDesdeOrigen;
-    this.lineaDisparo.y = oy + Math.sin(a) * finDesdeOrigen;
+    this.lineaDisparo.x = ox + Math.cos(a) * centro;
+    this.lineaDisparo.y = oy + Math.sin(a) * centro;
 
     this.aplicarTransformacionLineaDisparo();
   }
