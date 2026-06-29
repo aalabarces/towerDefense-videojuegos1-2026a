@@ -4,10 +4,14 @@ class Input {
     this.teclas = {};
     this.teclasPresionadas = {};
     this.mouse = { x: 0, y: 0 };
+    this.objetoSeleccionado = null;
     window.addEventListener("keydown", this.onKeyDown.bind(this));
     window.addEventListener("keyup", this.onKeyUp.bind(this));
     window.addEventListener("mousedown", this.onMouseDown.bind(this));
     window.addEventListener("mousemove", this.onMouseMove.bind(this));
+    window.addEventListener("click", this.onClick.bind(this));
+    window.addEventListener("wheel", this.onWheel.bind(this), { passive: false });
+    window.addEventListener("contextmenu", this.onClickDerecho.bind(this));
   }
 
   onKeyDown(event) {
@@ -44,8 +48,15 @@ class Input {
         this.juego.arrastrandoFantasma.sprite.zIndex = this.mouse.y;
       }
     }
-
-    // this.spawnEnemigo(mundoX, mundoY);
+    
+    if (this.juego.pausado) return;
+    const nuevoSeleccionado = this.juego.grilla.getCeldaEnPosicion(this.mouse.x, this.mouse.y)?.getObjetoEnPosicion(this.mouse.x, this.mouse.y);
+    if (nuevoSeleccionado !== this.objetoSeleccionado) {
+      this.objetoSeleccionado?.onMouseOut();
+      nuevoSeleccionado?.onMouseOver();
+      this.objetoSeleccionado = nuevoSeleccionado;
+    }
+    
   }
 
   onKeyUp(event) {
@@ -55,7 +66,7 @@ class Input {
   }
 
   update() {
-    // limpiar al final del frame
+    // pausar/reanudar
     if (this.fuePresionada("escape")) {
       if (this.juego.pausado) {
         console.log("reanudar juego");
@@ -65,9 +76,11 @@ class Input {
         this.juego.pausa();
       }
     }
+    // debug
     if (this.estaApretada("shift") && this.fuePresionada("d")) {
       this.juego.toggleDebug();
     }
+    // limpiar al final del frame
     this.teclasPresionadas = {};
   }
 
@@ -79,4 +92,19 @@ class Input {
   fuePresionada(key) {
     return !!this.teclasPresionadas[key];
   }
+
+  onClick(event) {
+    this.juego.intentarColocarFantasma();
+  }
+
+  onWheel(event) {
+    event.preventDefault();
+    this.juego.hacerZoom(event.deltaY, event.clientX, event.clientY);
+  }
+
+  onClickDerecho(event) {
+    event.preventDefault();
+    this.juego.quitarFantasma();
+  }
+
 }

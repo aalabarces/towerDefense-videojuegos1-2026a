@@ -6,6 +6,7 @@ const ZOOM_MAX = 2.0;
 const ZOOM_FACTOR = 0.001;
 const BASE_FRAME_MS = 1000 / 60;
 const DELTA_TIME_MAX_MS = 1000;
+const CLASES_DE_TORRE = [Torre1, Torre2, Torre3];
 
 /** Equivale a background-size: cover: el mundo tapa siempre el viewport (sin bandas por ratio). */
 function zoomMinimoCover() {
@@ -48,16 +49,18 @@ class Juego {
     this.deltaTime = 1 / 60;
     this.numeroDeFrame = 0;
     this.pausado = false;
+    this.juegoTerminado = false;
     this.usuario = new Usuario();
     this.debugMode = false;
+    this.tiempoSobrevivido = 0;
     this.estamosArrastrandoUnItemPAraPonerlo = null;
 
     this.gestorDeAudio = new GestorDeAudio(this);
 
-    this.clasesDeTorre = [Torre1, Torre2, Torre3].reduce((acc, clase) => {
-      acc[clase.tipoDeTorre] = clase;
-      return acc;
-    }, {});
+    this.clasesDeTorre = [];
+    CLASES_DE_TORRE.forEach((clase, index) => {
+      this.clasesDeTorre[index + 1] = clase;
+    });
   }
 
   sumarPlata(cuanto) {
@@ -98,6 +101,7 @@ class Juego {
    */
   comenzarJuego() {
     this.iniciarBucleDeJuego();
+    this.gestorDeAudio.comenzarMusicaJuego();
   }
 
   /**
@@ -206,18 +210,12 @@ class Juego {
   registrarEventosDeEntrada() {
     this.gameloop = this.gameloop.bind(this);
     this.onResize = this.onResize.bind(this);
-    this.onClick = this.onClick.bind(this);
-    this.onContextMenu = this.onContextMenu.bind(this);
-    this.onWheel = this.onWheel.bind(this);
 
     this.onVisibilityChange = this.onVisibilityChange.bind(this);
     this.onWindowBlur = this.onWindowBlur.bind(this);
     this.onWindowFocus = this.onWindowFocus.bind(this);
 
     window.addEventListener("resize", this.onResize);
-    window.addEventListener("click", this.onClick);
-    window.addEventListener("contextmenu", this.onContextMenu);
-    window.addEventListener("wheel", this.onWheel, { passive: false });
 
     // document.addEventListener("visibilitychange", this.onVisibilityChange);
     // window.addEventListener("blur", this.onWindowBlur);
@@ -242,39 +240,39 @@ class Juego {
     await this.gestorDeAudio.inicializar();
 
     this.assetEnemigo = await PIXI.Assets.load({
-      src: "assets/enemigo.json",
+      src: "assets/sprites/enemigo.json",
       data: { cachePrefix: "enemigo_" },
     });
     this.assetEnemigoDuro = await PIXI.Assets.load({
-      src: "assets/enemigoDuro.json",
+      src: "assets/sprites/enemigoDuro.json",
       data: { cachePrefix: "enemigoDuro_" },
     });
     this.assetEnemigoRapido = await PIXI.Assets.load({
-      src: "assets/enemigoRapido.json",
+      src: "assets/sprites/enemigoRapido.json",
       data: { cachePrefix: "enemigoRapido_" },
     });
     this.assetEnemigoFuerte = await PIXI.Assets.load({
-      src: "assets/enemigoFuerte.json",
+      src: "assets/sprites/enemigoFuerte.json",
       data: { cachePrefix: "enemigoFuerte_" },
     });
 
     this.assetsSplat = await PIXI.Assets.load("assets/splat/splat.json");
     this.assetExplosion = await PIXI.Assets.load(
-      "assets/explosion/explosions.json",
+      "assets/sprites/explosion/explosions.json",
     );
 
     this.assetTorre1 = await PIXI.Assets.load({
-      src: "assets/torre_ss/torre1.json",
+      src: "assets/sprites/torre_ss/torre1.json",
       data: { cachePrefix: "torre1_" },
     });
 
     this.assetPoli = await PIXI.Assets.load({
-      src: "assets/poli.json",
+      src: "assets/sprites/poli.json",
       data: { cachePrefix: "poli_" },
     });
 
     this.assetTorre2 = await PIXI.Assets.load({
-      src: "assets/torre2_ss/torre2.json",
+      src: "assets/sprites/torre2_ss/torre2.json",
       data: { cachePrefix: "torre2_" },
     });
 
@@ -410,18 +408,11 @@ class Juego {
     this.arrastrandoFantasma = null;
   }
 
-  onClick(event) {
-    // console.log("on click", event);
+  intentarColocarFantasma() {
+    if (this.pausado) return;
     if (this.arrastrandoFantasma) {
       if (this.arrastrandoFantasma.esPreview) {
-        const torre = this.arrastrandoFantasma;
-        torre.esPreview = false;
-        torre.container.alpha = 1.0;
-        if (torre.rangeCircle) {
-          torre.rangeCircle.visible = this.debugMode;
-        }
-        this.usuario.plata -= precioCompra("torre", torre.tipoDeTorre);
-        this.arrastrandoFantasma = null;
+        this.ponerTorre();
       } else if (
         this.arrastrandoFantasma.dataBoton &&
         this.arrastrandoFantasma.dataBoton.tipo == "piedra"
@@ -436,56 +427,69 @@ class Juego {
     }
   }
 
-  onWheel(event) {
-    event.preventDefault();
+  ponerTorre() {
+    if (!this.arrastrandoFantasma) return;
+    if (!this.arrastrandoFantasma.esPreview) return;
+    const torre = this.arrastrandoFantasma;
+    torre.esPreview = false;
+    torre.container.alpha = 1.0;
+    if (torre.rangeCircle) {
+      torre.rangeCircle.visible = this.debugMode;
+    }
+    this.usuario.plata -= precioCompra("torre", torre.tipoDeTorre);
+    this.arrastrandoFantasma = null;
+    this.gestorDeAudio.reproducir("colocarTorre", "Efectos");
+  }
+
+  hacerZoom(deltaY, clientX, clientY) {
+    if (this.pausado) return;
     if (!this.containerPrincipal) return;
 
     const zoom = this.containerPrincipal.scale.x;
     const zoomMin = zoomMinimoCover();
     const nuevoZoom = Math.min(
       ZOOM_MAX,
-      Math.max(zoomMin, zoom - event.deltaY * ZOOM_FACTOR * zoom),
+      Math.max(zoomMin, zoom - deltaY * ZOOM_FACTOR * zoom),
     );
 
-    const mouseX = event.clientX;
-    const mouseY = event.clientY;
-
-    const mundoX = (mouseX - this.containerPrincipal.x) / zoom;
-    const mundoY = (mouseY - this.containerPrincipal.y) / zoom;
+    const mundoX = (clientX - this.containerPrincipal.x) / zoom;
+    const mundoY = (clientY - this.containerPrincipal.y) / zoom;
 
     this.containerPrincipal.scale.set(nuevoZoom);
-    this.containerPrincipal.x = mouseX - mundoX * nuevoZoom;
-    this.containerPrincipal.y = mouseY - mundoY * nuevoZoom;
+    this.containerPrincipal.x = clientX - mundoX * nuevoZoom;
+    this.containerPrincipal.y = clientY - mundoY * nuevoZoom;
     this.clampCamaraAlMundo();
   }
 
-  onContextMenu(event) {
-    event.preventDefault();
-    // if (this.ui?.fantasma) {
-    //   this.ui.cancelarColocacion();
-    //   return;
-    // }
-  }
-
   pausa() {
+    if (this.juegoTerminado) return;
     this.pausado = true;
-    // this.app?.ticker?.stop();
-    // PIXI.Ticker.shared.stop();
+    if (window.menu) {
+      window.menu.prepararModoPausa();
+    }
+    const optionsPanel = document.getElementById("options-panel");
+    if (optionsPanel) optionsPanel.style.display = "flex";
     console.log("pausando juego");
+    this.gestorDeAudio.pausarMusicaJuego();
   }
 
   reanudar() {
+    if (this.juegoTerminado) return;
     if (!this.pausado) return;
     console.log("reanudando juego");
     this.pausado = false;
-    // this.app?.ticker?.start();
-    // PIXI.Ticker.shared.start();
-    // this.gameloop();
+    this.ultimoFrameRenderizado = performance.now();
+    const optionsPanel = document.getElementById("options-panel");
+    if (optionsPanel) optionsPanel.style.display = "none";
+    this.gestorDeAudio.reanudarMusicaJuego();
   }
 
   gameOver() {
-    this.pausa();
+    this.juegoTerminado = true;
+    this.pausado = true;
+    this.gestorDeAudio.pausarMusicaJuego();
     this.ui.mostrarGameOver();
+    this.gestorDeAudio.playGameOver();
   }
 
   onVisibilityChange() {
@@ -572,7 +576,12 @@ class Juego {
   }
 
   gameloop() {
-    if (this.pausado) return;
+    this.input.update();
+
+    if (this.pausado) {
+      requestAnimationFrame(this.gameloop);
+      return;
+    }
 
     this.grilla.resetear();
 
@@ -581,7 +590,6 @@ class Juego {
       gameObject.update();
     }
     this.nivel.update();
-    this.input.update();
     this.ui.update();
     this.actualizarDeltaTime();
 
@@ -594,6 +602,10 @@ class Juego {
     this.fps = 1000 / this.deltaTime;
     this.deltaTimeRatio = this.deltaTime / 16.666666666666667;
     this.ultimoFrameRenderizado = performance.now();
+
+    if (!this.pausado && !this.juegoTerminado && this.pixiInicializado) {
+      this.tiempoSobrevivido += this.deltaTime / 1000;
+    }
   }
 
   toggleDebug() {

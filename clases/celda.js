@@ -43,4 +43,39 @@ class Celda {
     entidades.push(...this.entidadesAca);
     return entidades;
   }
+
+  getObjetoEnPosicion(x, y) {
+    // Query this cell and its neighbors (up to 2 cells away) to find any overlapping sprites
+    const entidades = this.getEntidadesAcaYEnCeldasVecinas(2);
+
+    // Prioritize towers and structures
+    entidades.sort((a, b) => {
+      const aIsTorre = a instanceof Torre;
+      const bIsTorre = b instanceof Torre;
+      if (aIsTorre && !bIsTorre) return -1;
+      if (!aIsTorre && bIsTorre) return 1;
+      return 0;
+    });
+
+    for (let i = 0; i < entidades.length; i++) {
+      let entidad = entidades[i];
+      if (entidad.sprite) {
+        const sprite = entidad.sprite;
+        const width = sprite.texture.width * sprite.scale.x;
+        const height = sprite.texture.height * sprite.scale.y;
+        const anchorX = sprite.anchor ? sprite.anchor.x : 0;
+        const anchorY = sprite.anchor ? sprite.anchor.y : 0;
+
+        const left = entidad.posicion.x - anchorX * width;
+        const right = entidad.posicion.x + (1 - anchorX) * width;
+        const top = entidad.posicion.y - anchorY * height;
+        const bottom = entidad.posicion.y + (1 - anchorY) * height;
+
+        if (x >= left && x <= right && y >= top && y <= bottom) {
+          return entidad;
+        }
+      }
+    }
+    return null;
+  }
 }

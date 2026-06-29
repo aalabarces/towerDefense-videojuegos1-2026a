@@ -49,10 +49,35 @@ class Enemigo extends EntidadConSalud {
     this.cambiarAnimacion("idle", this.direccion);
 
     this.crearSombra();
+    this.crearGlow();
     this.crearFSMparaComportamientos();
     this.crearFSMparaAnimacion();
 
     this.render();
+  }
+
+  crearSombra() {
+    this.sombra = new PIXI.Sprite(this.juego.texturas.sombra);
+    this.sombra.anchor.set(0.5, 0.5);
+    this.sombra.scale.set(0.1);
+    this.sombra.zIndex = -1;
+    this.sombra.alpha = 0.5;
+    this.container.addChild(this.sombra);
+  }
+
+  crearGlow() {
+    this.glow = new PIXI.Graphics();
+    this.glow.beginFill(0xff3366, 0.5);
+    this.glow.drawEllipse(0, 0, 16, 8);
+    this.glow.endFill();
+    this.glow.zIndex = -0.5;
+    this.glow.visible = false;
+
+    const blur = new PIXI.BlurFilter();
+    blur.strength = 8;
+    this.glow.filters = [blur];
+
+    this.container.addChild(this.glow);
   }
 
   asignarTarget(obj) {
@@ -292,7 +317,10 @@ class Enemigo extends EntidadConSalud {
       this.animationFSM.currentStateName === "caminando" ||
       this.animationFSM.currentStateName === "corriendo"
     ) {
-      this.juego.gestorDeAudio.reproducirEfecto("pasos");
+      this.juego.gestorDeAudio.reproducirEfecto("pasos", {
+        volumen: 0.1,
+        speed: Math.random() * 0.6 + 0.7,
+      });
     }
   }
 
@@ -332,6 +360,27 @@ class Enemigo extends EntidadConSalud {
 
     this.behaviorFSM.update();
     super.update();
+
+    if (this.glow && this.glow.visible) {
+      const time = Date.now() / 200;
+      this.glow.alpha = 0.5 + Math.sin(time) * 0.2;
+      const scale = 1.0 + Math.sin(time) * 0.1;
+      this.glow.scale.set(scale);
+    }
+  }
+
+  onMouseOver() {
+    super.onMouseOver();
+    if (this.glow) {
+      // this.glow.visible = true;
+    }
+  }
+
+  onMouseOut() {
+    super.onMouseOut();
+    if (this.glow) {
+      // this.glow.visible = false;
+    }
   }
 
   siEstoyCercaDelCentroUrbanoMorir() {
