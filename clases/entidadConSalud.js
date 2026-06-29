@@ -1,5 +1,8 @@
 class EntidadConSalud extends GameObject {
   static OFFSET_BARRA_VIDA = 20;
+  static MATRIZ_FLASH_BLANCO = [
+    0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0,
+  ];
 
   constructor(x, y, juego) {
     super(x, y, juego);
@@ -66,11 +69,35 @@ class EntidadConSalud extends GameObject {
     this.morir();
   }
 
+  flashearAlRecibirDaño() {
+    if (!this.container) return;
+
+    if (!this._filtroFlashBlanco) {
+      this._filtroFlashBlanco = new PIXI.ColorMatrixFilter();
+      this._filtroFlashBlanco.matrix = EntidadConSalud.MATRIZ_FLASH_BLANCO;
+    }
+
+    this.container.filters = [this._filtroFlashBlanco];
+
+    clearTimeout(this._timeoutFlashBlanco);
+    this._timeoutFlashBlanco = setTimeout(() => {
+      if (this.container) this.container.filters = null;
+    }, 100);
+  }
+
   recibirDaño(cuanto) {
-    // this.container.
+    const vidaAnterior = this.vida;
     this.vida -= Math.min(cuanto, 0.5);
+    const dañoReal = vidaAnterior - this.vida;
+
     this.actualizarBarraDeVida();
     this.chequearMuerte();
+
+    if (dañoReal > 0) {
+      const ySpriteMinimo =
+        this.posicion.y - (this.sprite ? this.sprite.height : 40);
+      this.juego.crearTextoDaño(this.posicion.x, ySpriteMinimo, dañoReal);
+    }
   }
 
   explotar() {
