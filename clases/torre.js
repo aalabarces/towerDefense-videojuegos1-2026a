@@ -18,11 +18,13 @@ class Torre extends Estructura {
     // this.cargarSpritesTorre(juego.assetTorre1);
     // this.cambiarAnimacion("s");
 
-    this.lineaDisparo = new PIXI.Sprite(PIXI.Texture.WHITE);
-    this.lineaDisparo.width = 2;
-    this.lineaDisparo.anchor.set(0.5, 0);
-    this.lineaDisparo.y = 0;
+    this.lineaDisparo = new PIXI.Sprite(juego.texturas.fireline);
+    this.lineaDisparo.anchor.set(1, 0.5);
+    this.lineaDisparo.x = this.offsetSalidaBala.x;
+    this.lineaDisparo.y = this.offsetSalidaBala.y;
     this.lineaDisparo.visible = false;
+    this._escalaLineaDisparoX = 1;
+    this._flipLineaDisparo = false;
     this.container.addChild(this.lineaDisparo);
 
     juego.torres.push(this);
@@ -54,9 +56,49 @@ class Torre extends Estructura {
 
   ajustarLineaDisparo() {
     if (this.sprite) {
-      this.lineaDisparo.y = -this.sprite.height * 0.85;
       this.inicializarBarraDeVida();
     }
+    this.posicionarOrigenLineaDisparo();
+  }
+
+  posicionarOrigenLineaDisparo() {
+    this.lineaDisparo.x = this.offsetSalidaBala.x;
+    this.lineaDisparo.y = this.offsetSalidaBala.y;
+  }
+
+  aplicarTransformacionLineaDisparo() {
+    const tex = this.lineaDisparo.texture;
+    const flip = this._flipLineaDisparo ? -1 : 1;
+    this.lineaDisparo.scale.set(
+      flip * this._escalaLineaDisparoX,
+      4 / tex.height,
+    );
+  }
+
+  actualizarLineaDisparoVisible() {
+    if (!this.lineaDisparo.visible) return;
+
+    const D = this._distLineaDisparo;
+    const tex = this.lineaDisparo.texture;
+    const longitud = D * (0.5 + Math.random() * 0.5);
+    const offsetMax = Math.min(longitud * 0.5, Math.max(0, D - longitud));
+    const offset = Math.random() * offsetMax;
+    const desdeDisparador = Math.random() < 0.5;
+    const finDesdeOrigen = desdeDisparador
+      ? offset + longitud
+      : D - offset;
+
+    this._escalaLineaDisparoX = longitud / tex.width;
+    this._flipLineaDisparo = Math.random() < 0.5;
+
+    const ox = this.offsetSalidaBala.x;
+    const oy = this.offsetSalidaBala.y;
+    const a = this._anguloLineaDisparo;
+    this.lineaDisparo.rotation = a;
+    this.lineaDisparo.x = ox + Math.cos(a) * finDesdeOrigen;
+    this.lineaDisparo.y = oy + Math.sin(a) * finDesdeOrigen;
+
+    this.aplicarTransformacionLineaDisparo();
   }
 
   getPosicionSalidaBala() {
@@ -84,6 +126,9 @@ class Torre extends Estructura {
       this.render();
       return;
     }
+
+    this.actualizarLineaDisparoVisible();
+
     this.tiempoDesdeUltimoDisparo += this.juego.deltaTime;
 
     this.enemigosCerca = this.juego.getEnemigosCerca(
@@ -125,17 +170,15 @@ class Torre extends Estructura {
     }
 
     const salida = this.getPosicionSalidaBala();
-    this.lineaDisparo.y = this.offsetSalidaBala.y;
     const dx = enemigo.posicion.x - salida.x;
     const dy = enemigo.posicion.y - salida.y;
-    this.lineaDisparo.height = Math.hypot(dx, dy);
-    this.lineaDisparo.rotation = Math.atan2(-dx, dy);
+    this._distLineaDisparo = Math.hypot(dx, dy);
+    this._anguloLineaDisparo = Math.atan2(dy, dx);
     this.lineaDisparo.visible = true;
+    this.actualizarLineaDisparoVisible();
 
     // if (this.sprite) this.sprite.tint = 0xaa0000;
     setTimeout(() => {
-      if (!this.sprite) return;
-      // this.sprite.tint = 0xffffff;
       this.lineaDisparo.visible = false;
     }, 30);
   }

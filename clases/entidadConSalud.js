@@ -1,7 +1,11 @@
 class EntidadConSalud extends GameObject {
   static OFFSET_BARRA_VIDA = 20;
-  static MATRIZ_FLASH_BLANCO = [
-    0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0,
+  static INTENSIDAD_FLASH = 0.85;
+  static MATRIZ_FLASH_DAÑO = [
+    0.15, 0, 0, 0, 0.85,
+    0, 0.15, 0, 0, 0.85,
+    0, 0, 0.15, 0, 0.85,
+    0, 0, 0, 1, 0,
   ];
 
   constructor(x, y, juego) {
@@ -69,19 +73,31 @@ class EntidadConSalud extends GameObject {
     this.morir();
   }
 
+  obtenerElementosParaFlash() {
+    return this.sprite ? [this.sprite] : [];
+  }
+
   flashearAlRecibirDaño() {
-    if (!this.container) return;
+    const elementos = this.obtenerElementosParaFlash();
+    if (elementos.length === 0) return;
 
     if (!this._filtroFlashBlanco) {
       this._filtroFlashBlanco = new PIXI.ColorMatrixFilter();
-      this._filtroFlashBlanco.matrix = EntidadConSalud.MATRIZ_FLASH_BLANCO;
+      this._filtroFlashBlanco.matrix = EntidadConSalud.MATRIZ_FLASH_DAÑO;
     }
 
-    this.container.filters = [this._filtroFlashBlanco];
+    this._elementosFlasheados = elementos;
+    for (const elemento of elementos) {
+      elemento.filters = [this._filtroFlashBlanco];
+    }
 
     clearTimeout(this._timeoutFlashBlanco);
     this._timeoutFlashBlanco = setTimeout(() => {
-      if (this.container) this.container.filters = null;
+      for (const elemento of this._elementosFlasheados ?? []) {
+        if (elemento.destroyed) continue;
+        elemento.filters = null;
+      }
+      this._elementosFlasheados = null;
     }, 100);
   }
 
@@ -97,6 +113,7 @@ class EntidadConSalud extends GameObject {
       const ySpriteMinimo =
         this.posicion.y - (this.sprite ? this.sprite.height : 40);
       this.juego.crearTextoDaño(this.posicion.x, ySpriteMinimo, dañoReal);
+      this.flashearAlRecibirDaño();
     }
   }
 

@@ -370,6 +370,7 @@ class Juego {
       arbol3: "assets/sprites/arbol3.png",
       arbol4: "assets/sprites/arbol4.png",
       explosionDecal: "assets/sprites/explosion_decal.png",
+      fireline: "assets/sprites/fireline.png",
     };
 
     const entradas = Object.entries(imagenes);
@@ -743,13 +744,13 @@ class Juego {
     const texto = new PIXI.Text({
       text: dañoFormateado.toString(),
       style: {
-        fontFamily: 'MedievalSharp',
+        fontFamily: "Arial",
         fontSize: 22,
-        fontWeight: 'bold',
-        fill: '#ff3333',
-        stroke: { color: '#000000', width: 4 },
-        align: 'center'
-      }
+        // fontWeight: "bold",
+        fill: "#ffffff",
+        // stroke: { color: "#000000", width: 4 },
+        align: "center",
+      },
     });
 
     texto.anchor.set(0.5, 0.5);
@@ -761,7 +762,7 @@ class Juego {
     this.textosDaño.push({
       textObject: texto,
       tiempoAcumulado: 0,
-      posicionInicialY: y
+      posicionInicialY: y,
     });
   }
 
@@ -773,10 +774,10 @@ class Juego {
       const progreso = Math.min(1, td.tiempoAcumulado / 1000);
 
       // Subir unos pixeles durante un segundo
-      td.textObject.y = td.posicionInicialY - progreso * 45;
+      td.textObject.y = td.posicionInicialY - progreso * 65;
 
       // Desvanecer (fade out)
-      td.textObject.alpha = 1 - progreso;
+      td.textObject.alpha = 1.5 - progreso;
 
       if (progreso >= 1) {
         this.containerPrincipal.removeChild(td.textObject);

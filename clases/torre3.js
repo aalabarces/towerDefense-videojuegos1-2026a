@@ -35,6 +35,12 @@ class Torre3 extends Torre {
     this.cambiarAnimacionPoli("idle", "down");
   }
 
+  obtenerElementosParaFlash() {
+    const elementos = [this.spriteBase, this.spriteTapa];
+    if (this.spritesPoliActual) elementos.push(this.spritesPoliActual);
+    return elementos;
+  }
+
   // Crea todos los AnimatedSprites del policía (4 acciones × 4 direcciones = 16 sprites).
   // Todos quedan ocultos; solo el activo se hace visible via cambiarAnimacionPoli.
   // Los sprites de acciones no-loop tienen onComplete para encadenar la FSM automáticamente.
@@ -138,6 +144,8 @@ class Torre3 extends Torre {
       this.render();
       return;
     }
+
+    this.actualizarLineaDisparoVisible();
 
     this.tiempoDesdeUltimoDisparo += this.juego.deltaTime;
 

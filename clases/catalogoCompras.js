@@ -30,7 +30,7 @@ const CATALOGO_BOTONES = [
   {
     tipo: "superBomba",
     id: 5,
-    url: "assets/sprites/torre5.png",
+    url: "assets/sprites/superbomb.png",
     nombreTextura: "torre5",
     precio: 500,
   },
